@@ -1,5 +1,6 @@
 import { useState, Children, useRef, useLayoutEffect, HTMLAttributes, ReactNode, SVGProps, Fragment } from 'react';
 import { motion, AnimatePresence, Variants } from 'motion/react';
+import { cn } from '@/shared/lib/utils';
 
 interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
@@ -80,8 +81,7 @@ export default function Stepper({
       {...rest}
     >
       <div
-        className={`mx-auto w-full max-w-md rounded-4xl shadow-xl ${stepCircleContainerClassName}`}
-        style={{ border: '1px solid #222' }}
+        className={cn("mx-auto w-full max-w-md rounded-4xl shadow-xl", stepCircleContainerClassName)}
       >
         <div className={`${stepContainerClassName} flex w-full items-center p-8`}>
           {stepsArray.map((_, index) => {

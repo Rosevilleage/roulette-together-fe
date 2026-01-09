@@ -49,7 +49,7 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({
         onFinalStepCompleted={handleFinalStepCompleted}
         nextButtonText="다음"
         backButtonText="이전"
-        stepCircleContainerClassName="bg-card border-border"
+        stepCircleContainerClassName="bg-card border-0"
         contentClassName="min-h-[200px]"
       >
         <Step>

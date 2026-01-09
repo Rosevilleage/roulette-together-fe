@@ -7,9 +7,6 @@ import { Button } from "@/shared/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
   DialogTrigger,
 } from "@/shared/ui/dialog";
 import { CreateRoomStepper } from "@/features/room/create-room-stepper";
@@ -67,13 +64,7 @@ export const MainMenu: React.FC = () => {
               <PlusIcon className="w-5 h-5" />
               방 만들기
             </DialogTrigger>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>새로운 방 만들기</DialogTitle>
-                <DialogDescription>
-                  방을 만들고 친구들을 초대해보세요
-                </DialogDescription>
-              </DialogHeader>
+            <DialogContent showCloseButton={false} className="bg-transparent border-transparent shadow-none outline-none ring-0 p-0">
               <CreateRoomStepper
                 onComplete={() => setIsCreateDialogOpen(false)}
               />
