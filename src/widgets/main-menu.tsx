@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
+
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -11,8 +11,8 @@ import {
 } from "@/shared/ui/dialog";
 import { CreateRoomStepper } from "@/features/room/create-room-stepper";
 import { PlusIcon, QrCodeIcon, DicesIcon } from "lucide-react";
+import Shuffle from "@/shared/ui/Shuffle";
 
-const Shuffle = dynamic(() => import("@/shared/ui/Shuffle"), { ssr: false });
 
 export const MainMenu: React.FC = () => {
   const router = useRouter();
@@ -60,7 +60,7 @@ export const MainMenu: React.FC = () => {
         <div className="w-full flex flex-col gap-3">
           {/* Create Room */}
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger className="inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-14 px-8 w-full text-base">
+            <DialogTrigger suppressHydrationWarning className="inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-14 px-8 w-full text-base">
               <PlusIcon className="w-5 h-5" />
               방 만들기
             </DialogTrigger>
