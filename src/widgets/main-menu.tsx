@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -13,6 +14,8 @@ import {
 } from "@/shared/ui/dialog";
 import { CreateRoomStepper } from "@/features/room/create-room-stepper";
 import { PlusIcon, QrCodeIcon, DicesIcon } from "lucide-react";
+
+const Shuffle = dynamic(() => import("@/shared/ui/Shuffle"), { ssr: false });
 
 export const MainMenu: React.FC = () => {
   const router = useRouter();
@@ -29,9 +32,18 @@ export const MainMenu: React.FC = () => {
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="relative">
             <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse" />
-            <h1 className="relative text-5xl sm:text-6xl font-bold bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-              룰렛 투게더
-            </h1>
+            <Shuffle
+              text="룰렛 투게더"
+              tag="h1"
+              className="normal-case! relative text-5xl sm:text-6xl font-bold **:bg-linear-to-r! **:from-primary! **:to-primary/60! **:bg-clip-text! **:text-transparent!"
+              shuffleDirection="right"
+              duration={0.5}
+              stagger={0.05}
+              triggerOnce={false}
+              loop={false}
+              triggerOnHover={true}
+              textAlign="center"
+            />
           </div>
           <p className="text-muted-foreground text-sm sm:text-base max-w-sm">
             친구들과 함께 실시간으로 룰렛을 돌려보세요
@@ -51,14 +63,9 @@ export const MainMenu: React.FC = () => {
         <div className="w-full flex flex-col gap-3">
           {/* Create Room */}
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button
-                size="lg"
-                className="w-full h-14 text-base font-semibold gap-2"
-              >
-                <PlusIcon className="w-5 h-5" />
-                방 만들기
-              </Button>
+            <DialogTrigger className="inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-14 px-8 w-full text-base">
+              <PlusIcon className="w-5 h-5" />
+              방 만들기
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
