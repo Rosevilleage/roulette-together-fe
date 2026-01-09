@@ -1,5 +1,5 @@
-import { ComponentExample } from "@/widgets/component-example";
+import { MainMenu } from "@/widgets/main-menu";
 
 export default function Page() {
-  return <ComponentExample />;
+  return <MainMenu />;
 }

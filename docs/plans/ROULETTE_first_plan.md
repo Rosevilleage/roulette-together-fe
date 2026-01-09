@@ -14,9 +14,19 @@
 ```
 메인 화면
   ↓
+(선택) 닉네임 입력
+(선택) 룰렛 설정 입력
+  - winnersCount: 당첨자 수 (기본값: 1)
+  - winSentiment: 당첨 감정 (POSITIVE/NEGATIVE, 기본값: POSITIVE)
+  ↓
 [방 만들기] 버튼 클릭
   ↓
-POST /rooms API 호출 (빈 요청)
+POST /rooms API 호출
+  - {
+      nickname?: string,
+      winnersCount?: number,
+      winSentiment?: 'POSITIVE' | 'NEGATIVE'
+    }
   ↓
 응답 수신:
   - roomId
@@ -28,11 +38,12 @@ POST /rooms API 호출 (빈 요청)
   - 쿼리 파라미터: roomId, role=owner, token=ownerToken
   ↓
 WebSocket 연결 + room:join 이벤트 전송
-  - { roomId, role: 'owner', nickname? }
+  - { roomId, role: 'owner' }
+  - nickname 생략 시 방 생성 시 지정한 닉네임 사용
   ↓
 room:joined 이벤트 수신
   - isOwner: true
-  - nickname
+  - nickname (방 생성 시 지정한 닉네임 또는 "생성자")
   - rid
 ```
 
@@ -118,11 +129,21 @@ spin:result 이벤트 수신 (방 전체, 모든 참가자 결과)
 - 타이틀: "룰렛 투게더"
 - 버튼: "방 만들기"
 - (선택) 닉네임 입력 필드
+- (선택) 룰렛 설정 입력
+  - 당첨자 수 (winnersCount): 숫자 입력, 기본값 1
+  - 당첨 감정 (winSentiment): POSITIVE(당첨=좋음) / NEGATIVE(당첨=나쁨) 선택, 기본값 POSITIVE
 
 **API 호출:**
 
 - `POST /rooms` - 방 생성
-  - Request body: 없음 (빈 POST 요청)
+  - Request body:
+    ```json
+    {
+      "nickname": "방장닉네임", // 선택, 미입력 시 "생성자"
+      "winnersCount": 3, // 선택, 기본값 1
+      "winSentiment": "POSITIVE" // 선택, 기본값 "POSITIVE"
+    }
+    ```
   - Response: `{ roomId, ownerToken, ownerUrl, participantUrl, createdAt }`
 
 **라우팅:**
@@ -275,6 +296,8 @@ spin:result 이벤트 수신 (방 전체, 모든 참가자 결과)
 
 **룰렛 설정:**
 
+- 방 생성 시 초기 설정 가능 (winnersCount, winSentiment)
+- 입장 후에도 실시간으로 설정 변경 가능
 - 당첨자 수 선택 (1~N명)
 - 당첨 감정 선택 (긍정/부정)
 
@@ -556,7 +579,8 @@ interface RoomStore {
 
 ### 1. 닉네임 처리 (v2.1 업데이트)
 
-- 방 입장 시 닉네임을 입력하지 않으면 서버에서 자동으로 '참가자 N' 부여
+- **방장**: 방 생성 시 닉네임 지정 가능 (미입력 시 '생성자')
+- **참가자**: 방 입장 시 닉네임을 입력하지 않으면 서버에서 자동으로 '참가자 N' 부여
 - 방 입장 후 닉네임 변경 가능 (1-20자)
 - 닉네임 변경 시 방장에게 실시간으로 업데이트됨
 - 변경된 닉네임은 룰렛 결과에도 반영됨
@@ -611,9 +635,9 @@ interface RoomStore {
 
 ### HTTP API
 
-| Method | Endpoint | Description | Request Body            | Response                                                      |
-| ------ | -------- | ----------- | ----------------------- | ------------------------------------------------------------- |
-| POST   | `/rooms` | 방 생성     | `{ nickname?: string }` | `{ roomId, ownerToken, ownerUrl, participantUrl, createdAt }` |
+| Method | Endpoint | Description | Request Body                                                                                                                      | Response                                                      |
+| ------ | -------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| POST   | `/rooms` | 방 생성     | `{ nickname?: string, winnersCount?: number, winSentiment?: 'POSITIVE'\|'NEGATIVE' }` (미입력 시 기본값: "생성자", 1, "POSITIVE") | `{ roomId, ownerToken, ownerUrl, participantUrl, createdAt }` |
 
 ### WebSocket 이벤트
 
