@@ -832,7 +832,7 @@ socket.emit("spin:request", { roomId, requestId });
 npm run start:dev
 
 # Swagger 문서 확인
-http://localhost:3001/api-docs
+http://localhost:8080/api-docs
 ```
 
 ---
