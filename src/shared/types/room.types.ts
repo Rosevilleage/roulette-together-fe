@@ -12,6 +12,8 @@ export interface CreateRoomResponse {
 
 export interface CreateRoomRequest {
   nickname?: string;
+  winnersCount?: number;
+  winSentiment?: WinSentiment;
 }
 
 export type Role = "owner" | "participant";
