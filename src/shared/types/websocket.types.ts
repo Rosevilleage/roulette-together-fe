@@ -36,6 +36,10 @@ export interface ParticipantNicknameChangePayload {
   nickname: string;
 }
 
+export interface RoomLeavePayload {
+  roomId: string;
+}
+
 // ============================================
 // Server → Client Events
 // ============================================
@@ -139,6 +143,22 @@ export interface SpinRejectedPayload {
   reason: 'NOT_OWNER' | 'ALREADY_SPINNING' | 'NO_MEMBERS' | 'NOT_ALL_READY';
 }
 
+export interface RoomLeftPayload {
+  roomId: string;
+  leftAt: number;
+}
+
+export interface RoomLeaveRejectedPayload {
+  roomId: string;
+  reason: 'INVALID_REQUEST' | 'NOT_IN_ROOM' | 'INTERNAL_ERROR';
+}
+
+export interface RoomClosedPayload {
+  roomId: string;
+  reason: 'OWNER_LEFT';
+  closedAt: number;
+}
+
 // ============================================
 // Event Names
 // ============================================
@@ -150,6 +170,7 @@ export const SOCKET_EVENTS = {
   SPIN_REQUEST: 'spin:request',
   PARTICIPANT_READY_TOGGLE: 'participant:ready:toggle',
   PARTICIPANT_NICKNAME_CHANGE: 'participant:nickname:change',
+  ROOM_LEAVE: 'room:leave',
 
   // Server → Client
   ROOM_JOINED: 'room:joined',
@@ -161,6 +182,9 @@ export const SOCKET_EVENTS = {
   NICKNAME_CHANGED: 'nickname:changed',
   NICKNAME_CHANGE_REJECTED: 'nickname:change:rejected',
   READY_TOGGLE_REJECTED: 'ready:toggle:rejected',
+  ROOM_LEFT: 'room:left',
+  ROOM_LEAVE_REJECTED: 'room:leave:rejected',
+  ROOM_CLOSED: 'room:closed',
   SPIN_RESOLVED: 'spin:resolved',
   SPIN_OUTCOME: 'spin:outcome',
   SPIN_RESULT: 'spin:result',

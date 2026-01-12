@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/shared/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/shared/ui/dialog';
 import { CreateRoomStepper } from '@/features/room/create-room-stepper';
+import { RoomList } from '@/features/room/room-list';
 import { PlusIcon, QrCodeIcon, DicesIcon } from 'lucide-react';
 import Shuffle from '@/shared/ui/Shuffle';
 
@@ -49,6 +50,11 @@ export const MainMenu: React.FC = () => {
           <div className="absolute inset-8 bg-linear-to-br from-primary to-primary/60 rounded-full flex items-center justify-center">
             <span className="text-4xl">🎯</span>
           </div>
+        </div>
+
+        {/* Room List */}
+        <div className="w-full">
+          <RoomList />
         </div>
 
         {/* Menu Options */}

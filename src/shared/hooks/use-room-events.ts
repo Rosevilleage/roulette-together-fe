@@ -12,6 +12,9 @@ import type {
   NicknameChangedPayload,
   NicknameChangeRejectedPayload,
   ReadyToggleRejectedPayload,
+  RoomLeftPayload,
+  RoomLeaveRejectedPayload,
+  RoomClosedPayload,
   SpinResolvedPayload,
   SpinOutcomePayload,
   SpinResultPayload,
@@ -129,6 +132,47 @@ export const useRoomEvents = (socket: Socket | null): void => {
     };
 
     // ============================================
+    // Room Leave Events
+    // ============================================
+
+    const handleRoomLeft = (payload: RoomLeftPayload): void => {
+      console.log('[Room] Left successfully:', payload);
+
+      // Clean up room storage if owner
+      const roomId = useRoomStore.getState().roomId;
+      const isOwner = useRoomStore.getState().isOwner;
+
+      if (roomId && isOwner) {
+        removeOwnedRoom(roomId);
+      }
+
+      // Navigate to home
+      window.location.href = '/';
+    };
+
+    const handleRoomLeaveRejected = (payload: RoomLeaveRejectedPayload): void => {
+      console.error('[Room] Leave rejected:', payload.reason);
+      const messages: Record<string, string> = {
+        INVALID_REQUEST: '잘못된 요청입니다',
+        NOT_IN_ROOM: '방에 입장하지 않았습니다',
+        INTERNAL_ERROR: '서버 오류가 발생했습니다'
+      };
+      alert(`방 나가기가 거부되었습니다: ${messages[payload.reason] || payload.reason}`);
+    };
+
+    const handleRoomClosed = (payload: RoomClosedPayload): void => {
+      console.log('[Room] Room closed:', payload);
+
+      // Show alert to participants
+      alert('방장이 방을 나가 방이 삭제되었습니다');
+
+      // Navigate to home after 1 second
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+    };
+
+    // ============================================
     // Spin Events
     // ============================================
 
@@ -176,6 +220,9 @@ export const useRoomEvents = (socket: Socket | null): void => {
     socket.on(SOCKET_EVENTS.NICKNAME_CHANGED, handleNicknameChanged);
     socket.on(SOCKET_EVENTS.NICKNAME_CHANGE_REJECTED, handleNicknameChangeRejected);
     socket.on(SOCKET_EVENTS.READY_TOGGLE_REJECTED, handleReadyToggleRejected);
+    socket.on(SOCKET_EVENTS.ROOM_LEFT, handleRoomLeft);
+    socket.on(SOCKET_EVENTS.ROOM_LEAVE_REJECTED, handleRoomLeaveRejected);
+    socket.on(SOCKET_EVENTS.ROOM_CLOSED, handleRoomClosed);
     socket.on(SOCKET_EVENTS.SPIN_RESOLVED, handleSpinResolved);
     socket.on(SOCKET_EVENTS.SPIN_OUTCOME, handleSpinOutcome);
     socket.on(SOCKET_EVENTS.SPIN_RESULT, handleSpinResult);
@@ -194,6 +241,9 @@ export const useRoomEvents = (socket: Socket | null): void => {
       socket.off(SOCKET_EVENTS.NICKNAME_CHANGED, handleNicknameChanged);
       socket.off(SOCKET_EVENTS.NICKNAME_CHANGE_REJECTED, handleNicknameChangeRejected);
       socket.off(SOCKET_EVENTS.READY_TOGGLE_REJECTED, handleReadyToggleRejected);
+      socket.off(SOCKET_EVENTS.ROOM_LEFT, handleRoomLeft);
+      socket.off(SOCKET_EVENTS.ROOM_LEAVE_REJECTED, handleRoomLeaveRejected);
+      socket.off(SOCKET_EVENTS.ROOM_CLOSED, handleRoomClosed);
       socket.off(SOCKET_EVENTS.SPIN_RESOLVED, handleSpinResolved);
       socket.off(SOCKET_EVENTS.SPIN_OUTCOME, handleSpinOutcome);
       socket.off(SOCKET_EVENTS.SPIN_RESULT, handleSpinResult);

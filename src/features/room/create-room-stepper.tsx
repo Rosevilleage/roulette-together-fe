@@ -15,6 +15,7 @@ interface CreateRoomStepperProps {
 
 export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete }) => {
   const router = useRouter();
+  const [title, setTitle] = useState<string>('');
   const [nickname, setNickname] = useState<string>('');
   const [winnersCount, setWinnersCount] = useState<number>(1);
   const [winSentiment, setWinSentiment] = useState<WinSentiment>('POSITIVE');
@@ -27,11 +28,15 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
       setError(null);
 
       const request: {
+        title?: string;
         nickname?: string;
         winnersCount?: number;
         winSentiment?: WinSentiment;
       } = {};
 
+      if (title.trim()) {
+        request.title = title.trim();
+      }
       if (nickname.trim()) {
         request.nickname = nickname.trim();
       }
@@ -61,7 +66,7 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
       setError(err instanceof Error ? err.message : '방 생성에 실패했습니다.');
       setIsCreating(false);
     }
-  }, [nickname, winnersCount, winSentiment, router, onComplete]);
+  }, [title, nickname, winnersCount, winSentiment, router, onComplete]);
 
   return (
     <div className="w-full">
@@ -76,21 +81,36 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
         <Step>
           <div className="space-y-4">
             <div className="space-y-2 text-center">
-              <h3 className="text-lg font-semibold">닉네임 설정</h3>
-              <p className="text-sm text-muted-foreground">방에서 사용할 닉네임을 입력해주세요</p>
+              <h3 className="text-lg font-semibold">방 정보 설정</h3>
+              <p className="text-sm text-muted-foreground">방 제목과 닉네임을 입력해주세요</p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="stepper-nickname">닉네임 (선택사항)</Label>
-              <Input
-                id="stepper-nickname"
-                type="text"
-                placeholder="예: 방장님"
-                value={nickname}
-                onChange={e => setNickname(e.target.value)}
-                maxLength={20}
-                disabled={isCreating}
-              />
-              <p className="text-xs text-muted-foreground">입력하지 않으면 자동으로 닉네임이 생성됩니다</p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="stepper-title">방 제목 (선택사항)</Label>
+                <Input
+                  id="stepper-title"
+                  type="text"
+                  placeholder="예: 점심 메뉴 정하기"
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  maxLength={50}
+                  disabled={isCreating}
+                />
+                <p className="text-xs text-muted-foreground">입력하지 않으면 &quot;룰렛 방&quot;으로 설정됩니다</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="stepper-nickname">닉네임 (선택사항)</Label>
+                <Input
+                  id="stepper-nickname"
+                  type="text"
+                  placeholder="예: 방장님"
+                  value={nickname}
+                  onChange={e => setNickname(e.target.value)}
+                  maxLength={20}
+                  disabled={isCreating}
+                />
+                <p className="text-xs text-muted-foreground">입력하지 않으면 자동으로 닉네임이 생성됩니다</p>
+              </div>
             </div>
           </div>
         </Step>
@@ -159,13 +179,19 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
             <div className="space-y-2 text-center">
               <h3 className="text-lg font-semibold">방 생성 준비 완료!</h3>
               <p className="text-sm text-muted-foreground">
-                {nickname.trim()
-                  ? `"${nickname.trim()}" 닉네임으로 방을 생성합니다`
-                  : '자동 생성된 닉네임으로 방을 생성합니다'}
+                {title.trim() ? `"${title.trim()}" 방을 생성합니다` : '"룰렛 방"을 생성합니다'}
               </p>
             </div>
 
             <div className="space-y-2 p-4 rounded-lg bg-muted/50">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">방 제목:</span>
+                <span className="font-medium">{title.trim() || '룰렛 방'}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">닉네임:</span>
+                <span className="font-medium">{nickname.trim() || '자동 생성'}</span>
+              </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">당첨자 수:</span>
                 <span className="font-medium">{winnersCount}명</span>
