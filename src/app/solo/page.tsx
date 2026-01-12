@@ -17,6 +17,7 @@ export default function SoloPage(): ReactElement {
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [winner, setWinner] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState<boolean>(false);
+  const [selectedCandidateIds, setSelectedCandidateIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // This pattern is necessary to prevent hydration errors when using localStorage
@@ -50,6 +51,25 @@ export default function SoloPage(): ReactElement {
     }
 
     setIsSpinning(false);
+  };
+
+  const handleToggleCandidateSelection = (candidateId: string): void => {
+    setSelectedCandidateIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(candidateId)) {
+        newSet.delete(candidateId);
+      } else {
+        newSet.add(candidateId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleDeleteSelectedCandidates = (): void => {
+    selectedCandidateIds.forEach(id => {
+      removeCandidate(id);
+    });
+    setSelectedCandidateIds(new Set());
   };
 
   return (
@@ -93,50 +113,54 @@ export default function SoloPage(): ReactElement {
 
         {/* Candidates List */}
         <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <h2 className="text-lg font-semibold">후보 목록 ({isMounted ? candidates.length : 0})</h2>
-            {isMounted && candidates.length > 0 && (
-              <Button variant="ghost" size="sm" onClick={clearCandidates}>
-                전체 삭제
-              </Button>
-            )}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              {isMounted && selectedCandidateIds.size > 0 && (
+                <Button variant="destructive" size="sm" onClick={handleDeleteSelectedCandidates}>
+                  <XIcon className="w-4 h-4 mr-1" />
+                  선택 삭제 ({selectedCandidateIds.size})
+                </Button>
+              )}
+              {isMounted && candidates.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={clearCandidates}>
+                  전체 삭제
+                </Button>
+              )}
+            </div>
           </div>
 
           {!isMounted || candidates.length === 0 ? (
             <p className="text-center text-sm text-muted-foreground py-8">후보를 추가해주세요</p>
           ) : (
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent hover:scrollbar-thumb-primary/40">
-              {candidates.map(candidate => (
-                <div
-                  key={candidate.id}
-                  className="relative shrink-0 w-32 h-32 bg-card border border-border rounded-xl flex items-center justify-center group"
-                  style={{
-                    backgroundColor: `${candidate.color}20`,
-                    borderColor: candidate.color
-                  }}
-                >
-                  <button
-                    onClick={() => removeCandidate(candidate.id)}
-                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                  >
-                    <XIcon className="w-3 h-3" />
-                  </button>
-                  <p
-                    className="text-center text-sm font-semibold px-2 wrap-break-word"
-                    style={{ color: candidate.color }}
+              {candidates.map(candidate => {
+                const isSelected = selectedCandidateIds.has(candidate.id);
+                return (
+                  <Badge
+                    key={candidate.id}
+                    onClick={() => handleToggleCandidateSelection(candidate.id)}
+                    style={{
+                      backgroundColor: isSelected ? candidate.color : `${candidate.color}20`,
+                      borderColor: candidate.color,
+                      color: isSelected ? '#fff' : candidate.color,
+                      borderWidth: isSelected ? '2px' : '1px',
+                      boxShadow: isSelected ? `0 0 0 2px ${candidate.color}40` : 'none'
+                    }}
+                    className={`text-sm font-semibold px-3 py-1.5 cursor-pointer active:opacity-70 transition-all ${
+                      isSelected ? 'scale-105' : ''
+                    }`}
                   >
                     {candidate.name}
-                  </p>
-                </div>
-              ))}
+                  </Badge>
+                );
+              })}
             </div>
           )}
         </div>
 
         {/* Roulette Wheel */}
-        <div className="rounded-2xl p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-center">룰렛</h2>
-
+        <div className="space-y-4">
           <div className="flex justify-center items-center">
             <div
               onClick={handleSpin}
