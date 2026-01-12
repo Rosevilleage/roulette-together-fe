@@ -73,7 +73,10 @@ export const RoomList: React.FC = () => {
 
   return (
     <div className="w-full">
-      <h2 className="text-lg font-semibold mb-3 text-foreground">내가 만든 방</h2>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-semibold text-foreground">내가 만든 방</h2>
+        <span className="text-xs text-muted-foreground">재연결 가능: 30분</span>
+      </div>
       <div className="flex flex-col gap-2">
         {rooms.map(room => (
           <Card

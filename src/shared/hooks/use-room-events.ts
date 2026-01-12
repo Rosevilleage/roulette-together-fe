@@ -59,6 +59,16 @@ export const useRoomEvents = (socket: Socket | null): void => {
       const roomId = useRoomStore.getState().roomId;
       const isOwner = useRoomStore.getState().isOwner;
 
+      // Error messages for each rejection reason
+      const errorMessages: Record<string, string> = {
+        OWNER_ALREADY_EXISTS:
+          '방장이 이미 다른 곳에서 접속 중입니다.\n잠시 후 다시 시도해주세요. (재연결 가능 시간: 30분)',
+        INVALID_OWNER_TOKEN: '방장 인증 정보가 유효하지 않습니다.\n방이 만료되었거나 삭제되었을 수 있습니다.',
+        MISSING_OWNER_TOKEN: '방장 인증 정보가 없습니다.',
+        INVALID_REQUEST: '잘못된 요청입니다.',
+        INVALID_RID: '세션 정보가 유효하지 않습니다.'
+      };
+
       if (roomId && isOwner) {
         const shouldRemove =
           payload.reason === 'INVALID_OWNER_TOKEN' ||
@@ -71,7 +81,8 @@ export const useRoomEvents = (socket: Socket | null): void => {
         }
       }
 
-      alert(`방 입장이 거부되었습니다: ${payload.reason}`);
+      const message = errorMessages[payload.reason] || `방 입장이 거부되었습니다: ${payload.reason}`;
+      alert(message);
     };
 
     // ============================================
