@@ -13,24 +13,33 @@ export const OwnerView: React.FC = () => {
   const socket = useSocket();
   const { roomId, myNickname, config, participants, readyCount, allReady } = useRoomStore();
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
+  const [isSharing, setIsSharing] = useState<boolean>(false);
 
   const participantUrl =
     typeof window !== 'undefined' ? `${window.location.origin}/room/${roomId}?role=participant` : '';
 
   const handleShareLink = async (): Promise<void> => {
-    if (navigator.share) {
-      try {
+    if (isSharing) {
+      return;
+    }
+
+    setIsSharing(true);
+
+    try {
+      if (navigator.share) {
         await navigator.share({
           title: '룰렛 투게더 - 방 참가',
           text: '룰렛 게임에 참가해보세요!',
           url: participantUrl
         });
-      } catch (err) {
-        console.error('Share failed:', err);
+      } else {
+        await navigator.clipboard.writeText(participantUrl);
+        alert('링크가 클립보드에 복사되었습니다!');
       }
-    } else {
-      await navigator.clipboard.writeText(participantUrl);
-      alert('링크가 클립보드에 복사되었습니다!');
+    } catch (err) {
+      console.error('Share failed:', err);
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -128,9 +137,15 @@ export const OwnerView: React.FC = () => {
             {isSpinning ? '룰렛 돌리는 중...' : allReady ? '🎯 룰렛 돌리기' : '모든 참가자가 준비해야 합니다'}
           </Button>
 
-          <Button size="lg" variant="outline" onClick={handleShareLink} className="w-full h-12 gap-2">
+          <Button
+            size="lg"
+            variant="outline"
+            onClick={handleShareLink}
+            disabled={isSharing}
+            className="w-full h-12 gap-2"
+          >
             <ShareIcon className="w-5 h-5" />
-            참가자 링크 공유
+            {isSharing ? '공유 중...' : '참가자 링크 공유'}
           </Button>
         </div>
 
