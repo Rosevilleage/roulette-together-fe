@@ -80,9 +80,7 @@ export default function Stepper({
       className="flex min-h-full flex-1 flex-col items-center justify-center p-4 sm:aspect-4/3 md:aspect-2/1"
       {...rest}
     >
-      <div
-        className={cn("mx-auto w-full max-w-md rounded-4xl shadow-xl", stepCircleContainerClassName)}
-      >
+      <div className={cn('mx-auto w-full max-w-md rounded-4xl shadow-xl', stepCircleContainerClassName)}>
         <div className={`${stepContainerClassName} flex w-full items-center p-8`}>
           {stepsArray.map((_, index) => {
             const stepNumber = index + 1;
@@ -311,7 +309,7 @@ function StepConnector({ isComplete }: StepConnectorProps) {
   );
 }
 
-type CheckIconProps = SVGProps<SVGSVGElement>
+type CheckIconProps = SVGProps<SVGSVGElement>;
 
 function CheckIcon(props: CheckIconProps) {
   return (

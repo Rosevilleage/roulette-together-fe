@@ -5,16 +5,19 @@
 ## 기능
 
 ### 1. 방 만들기
+
 - **Stepper UI**: 단계별 방 생성 프로세스
   - 1단계: 닉네임 입력 (선택사항)
   - 2단계: 방 생성 확인 및 생성
 - 방 생성 후 자동으로 방장으로 입장
 
 ### 2. 방 참가하기
+
 - **QR 코드 스캔**: 방장이 보여주는 QR 코드를 스캔하여 입장 (개발 예정)
 - **링크 입력**: 방 URL을 직접 입력하여 참가
 
 ### 3. 혼자 룰렛 돌리기
+
 - **후보 관리**: 후보를 추가, 수정, 삭제
 - **룰렛 스핀**: 후보 중 무작위로 한 명 선택
 - **당첨 기록**: 이전 당첨자 기록 확인
@@ -36,20 +39,32 @@ src/
 ├── app/                    # Next.js App Router 페이지
 │   ├── page.tsx           # 메인 페이지
 │   ├── join/              # 방 참가하기 페이지
-│   └── solo/              # 혼자 룰렛 페이지
+│   ├── solo/              # 혼자 룰렛 페이지
+│   └── room/[roomId]/     # 방 화면 (동적 라우트)
 ├── entities/              # 엔티티 (도메인 모델)
 ├── features/              # 기능 단위 컴포넌트
 │   └── room/
 │       ├── create-room-form.tsx
-│       └── create-room-stepper.tsx
+│       ├── create-room-stepper.tsx
+│       ├── nickname-input-dialog.tsx
+│       ├── room-waiting.tsx
+│       ├── owner-view.tsx
+│       └── participant-view.tsx
 ├── shared/                # 공유 리소스
 │   ├── api/              # API 함수
 │   ├── hooks/            # 커스텀 훅
+│   │   ├── use-socket.ts
+│   │   └── use-room-events.ts
 │   ├── lib/              # 유틸리티
+│   ├── store/            # 상태 관리
+│   │   └── room.store.ts
 │   ├── types/            # 타입 정의
+│   │   ├── room.types.ts
+│   │   └── websocket.types.ts
 │   └── ui/               # UI 컴포넌트
 └── widgets/               # 페이지 레벨 컴포넌트
-    └── main-menu.tsx
+    ├── main-menu.tsx
+    └── room-page.tsx
 ```
 
 ## 개발 시작하기
@@ -91,7 +106,11 @@ pnpm lint:fix
 - `/` - 메인 메뉴 (방 만들기, 방 참가하기, 혼자 룰렛)
 - `/join` - 방 참가하기 (QR 스캔 또는 링크 입력)
 - `/solo` - 혼자 룰렛 돌리기
-- `/room/:roomId` - 방 화면 (추후 구현 예정)
+- `/room/:roomId` - 방 화면 (방장/참가자 뷰)
+  - 쿼리 파라미터:
+    - `role`: 'owner' | 'participant' (필수)
+    - `token`: 방장 인증 토큰 (role=owner일 때만)
+    - `nickname`: 초기 닉네임 (선택)
 
 ## 개발 규칙
 
@@ -104,17 +123,21 @@ pnpm lint:fix
 ## 코드 품질
 
 ### ESLint 설정
+
 - **자동 import 정리**: 저장 시 사용하지 않는 import 자동 제거
 - **TypeScript 규칙**: strict 모드 활성화
 - **React 규칙**: hooks 사용 규칙 강제
 
 ### VS Code / Cursor 설정
+
 프로젝트에 `.vscode/settings.json`이 포함되어 있어 다음 기능이 자동으로 활성화됩니다:
+
 - 저장 시 자동 포맷팅
 - 저장 시 ESLint 자동 수정 (unused imports 제거 포함)
 - TypeScript 워크스페이스 버전 사용
 
 ### Lint 명령어
+
 ```bash
 # 코드 검사
 pnpm lint
@@ -123,14 +146,22 @@ pnpm lint
 pnpm lint:fix
 ```
 
+## 구현 완료
+
+- [x] WebSocket 연결 및 실시간 방 기능
+- [x] 방 화면 UI 구현
+- [x] 참가자 준비 상태 시스템
+- [x] 방장/참가자 역할 관리
+- [x] 닉네임 변경 기능
+- [x] 방 생성 및 입장 플로우
+
 ## 다음 개발 예정
 
-- [ ] WebSocket 연결 및 실시간 방 기능
-- [ ] 방 화면 UI 구현
-- [ ] 참가자 준비 상태 시스템
-- [ ] 룰렛 애니메이션
+- [ ] 룰렛 스핀 애니메이션
+- [ ] 결과 화면 UI
 - [ ] QR 코드 스캔 기능 구현
-- [ ] 방장/참가자 역할 관리
+- [ ] 방 설정 변경 기능 (방장)
+- [ ] 에러 처리 개선
 
 ## 참고 문서
 

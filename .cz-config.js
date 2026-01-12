@@ -8,7 +8,7 @@ module.exports = {
     { value: '⚡ perf', name: '⚡ perf:     성능 개선' },
     { value: '🧪 test', name: '🧪 test:     테스트 코드 추가/수정' },
     { value: '🔧 chore', name: '🔧 chore:    빌드 업무 수정, 패키지 매니저 설정 등' },
-    { value: '👷 ci', name: '👷 ci:       CI 설정 변경' },
+    { value: '👷 ci', name: '👷 ci:       CI 설정 변경' }
   ],
 
   scopes: [
@@ -18,7 +18,7 @@ module.exports = {
     { name: 'utils' },
     { name: 'styles' },
     { name: 'config' },
-    { name: 'deps' },
+    { name: 'deps' }
   ],
 
   messages: {
@@ -29,11 +29,11 @@ module.exports = {
     body: '변경 사항을 자세히 설명하세요 (선택사항). "|"로 개행:\n',
     breaking: 'BREAKING CHANGES를 설명하세요 (선택사항):\n',
     footer: '이슈를 닫을 경우 입력하세요 (예: #123) (선택사항):\n',
-    confirmCommit: '위의 커밋 메시지로 진행하시겠습니까?',
+    confirmCommit: '위의 커밋 메시지로 진행하시겠습니까?'
   },
 
   allowCustomScopes: true,
   allowBreakingChanges: ['feat', 'fix'],
   skipQuestions: ['footer'],
-  subjectLimit: 100,
+  subjectLimit: 100
 };

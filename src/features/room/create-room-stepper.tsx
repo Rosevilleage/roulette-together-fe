@@ -44,8 +44,17 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
 
       const response = await createRoom(request);
 
+      // Extract token from ownerUrl (format: /room/:roomId?role=owner&token=xxx)
+      const url = new URL(response.ownerUrl, window.location.origin);
+      const token = url.searchParams.get('token');
+
       // Navigate to room with owner role and token
-      router.push(`/room/${response.roomId}?role=owner&token=${response.ownerToken}`);
+      if (token) {
+        router.push(`/room/${response.roomId}?role=owner&token=${token}`);
+      } else {
+        // Fallback: use the full ownerUrl
+        router.push(response.ownerUrl);
+      }
 
       onComplete?.();
     } catch (err) {

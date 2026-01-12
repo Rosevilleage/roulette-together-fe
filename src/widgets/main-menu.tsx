@@ -1,25 +1,20 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-import { Button } from "@/shared/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/shared/ui/dialog";
-import { CreateRoomStepper } from "@/features/room/create-room-stepper";
-import { PlusIcon, QrCodeIcon, DicesIcon } from "lucide-react";
-import Shuffle from "@/shared/ui/Shuffle";
-
+import { Button } from '@/shared/ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/shared/ui/dialog';
+import { CreateRoomStepper } from '@/features/room/create-room-stepper';
+import { PlusIcon, QrCodeIcon, DicesIcon } from 'lucide-react';
+import Shuffle from '@/shared/ui/Shuffle';
 
 export const MainMenu: React.FC = () => {
   const router = useRouter();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const handleSoloRoulette = (): void => {
-    router.push("/solo");
+    router.push('/solo');
   };
 
   return (
@@ -60,14 +55,17 @@ export const MainMenu: React.FC = () => {
         <div className="w-full flex flex-col gap-3">
           {/* Create Room */}
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger suppressHydrationWarning className="inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-14 px-8 w-full text-base">
-              <PlusIcon className="w-5 h-5" />
-              방 만들기
+            <DialogTrigger
+              suppressHydrationWarning
+              className="inline-flex items-center justify-center gap-2 rounded-full font-semibold transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-14 px-8 w-full text-base"
+            >
+              <PlusIcon className="w-5 h-5" />방 만들기
             </DialogTrigger>
-            <DialogContent showCloseButton={false} className="bg-transparent border-transparent shadow-none outline-none ring-0 p-0">
-              <CreateRoomStepper
-                onComplete={() => setIsCreateDialogOpen(false)}
-              />
+            <DialogContent
+              showCloseButton={false}
+              className="bg-transparent border-transparent shadow-none outline-none ring-0 p-0"
+            >
+              <CreateRoomStepper onComplete={() => setIsCreateDialogOpen(false)} />
             </DialogContent>
           </Dialog>
 
@@ -78,11 +76,10 @@ export const MainMenu: React.FC = () => {
             className="w-full h-14 text-base font-semibold gap-2"
             onClick={() => {
               // QR 스캔 기능은 별도 페이지에서 구현
-              router.push("/join");
+              router.push('/join');
             }}
           >
-            <QrCodeIcon className="w-5 h-5" />
-            방 참가하기
+            <QrCodeIcon className="w-5 h-5" />방 참가하기
           </Button>
 
           {/* Solo Roulette */}

@@ -1,21 +1,20 @@
-import type { CreateRoomResponse, CreateRoomRequest } from "@/shared/types/room.types";
+import type { CreateRoomResponse, CreateRoomRequest } from '@/shared/types/room.types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 /**
  * Create a new room
  * @param request - Optional nickname for the room owner
  * @returns Room information including roomId, tokens, and URLs
  */
-export async function createRoom(
-  request: CreateRoomRequest = {}
-): Promise<CreateRoomResponse> {
+export async function createRoom(request: CreateRoomRequest = {}): Promise<CreateRoomResponse> {
   const response = await fetch(`${API_URL}/rooms`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify(request),
+    credentials: 'include', // 쿠키 전송을 위해 필수
+    body: JSON.stringify(request)
   });
 
   if (!response.ok) {

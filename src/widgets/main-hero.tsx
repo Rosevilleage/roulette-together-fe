@@ -1,4 +1,4 @@
-import { CreateRoomForm } from "@/features/room/create-room-form";
+import { CreateRoomForm } from '@/features/room/create-room-form';
 
 export const MainHero: React.FC = () => {
   return (
