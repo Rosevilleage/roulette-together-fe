@@ -1,37 +1,33 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono, Noto_Sans } from "next/font/google";
-import "./globals.css";
-import { cn } from "@/shared/lib/utils";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono, Noto_Sans } from 'next/font/google';
+import './globals.css';
+import { cn } from '@/shared/lib/utils';
 
-const notoSans = Noto_Sans({variable:'--font-sans'});
+const notoSans = Noto_Sans({ variable: '--font-sans' });
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin']
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin']
 });
 
 export const metadata: Metadata = {
-  title: "룰렛 투게더 - 실시간 다인 룰렛",
-  description: "친구들과 함께 실시간으로 룰렛을 돌려보세요",
+  title: '룰렛 투게더 - 실시간 다인 룰렛',
+  description: '친구들과 함께 실시간으로 룰렛을 돌려보세요'
 };
 
 export default function RootLayout({
-  children,
+  children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <html lang="en" className={notoSans.variable}>
-      <body
-        className={cn(geistSans.variable, geistMono.variable, "antialiased")}
-      >
-        {children}
-      </body>
+      <body className={cn(geistSans.variable, geistMono.variable, 'antialiased h-dvh w-dvw')}>{children}</body>
     </html>
   );
 }
