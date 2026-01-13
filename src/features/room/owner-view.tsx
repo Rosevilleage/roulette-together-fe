@@ -176,9 +176,6 @@ export const OwnerView: React.FC = () => {
         </div>
 
         {/* Info */}
-        <div className="text-center text-sm text-muted-foreground">
-          <p>방 ID: {roomId}</p>
-        </div>
       </div>
     </div>
   );

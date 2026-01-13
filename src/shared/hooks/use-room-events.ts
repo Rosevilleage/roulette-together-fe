@@ -59,9 +59,9 @@ export const useRoomEvents = (socket: Socket | null): void => {
       // 방에 입장하면 방장이 있다고 가정 (방장 본인이거나 방장이 있는 방에 입장)
       setOwnerPresent(true);
 
-      // 참가자인 경우 방문 기록 저장
+      // 참가자인 경우 방문 기록 저장 (방 제목 포함)
       if (!payload.you.isOwner) {
-        saveVisitedRoom(payload.roomId, payload.you.nickname);
+        saveVisitedRoom(payload.roomId, payload.you.nickname, payload.title);
       }
     };
 

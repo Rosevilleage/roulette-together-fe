@@ -153,11 +153,6 @@ export const ParticipantView: React.FC = () => {
         >
           {myReady ? '준비 취소' : '✓ 준비 완료'}
         </Button>
-
-        {/* Info */}
-        <div className="text-center text-sm text-muted-foreground">
-          <p>방 ID: {roomId}</p>
-        </div>
       </div>
     </div>
   );
