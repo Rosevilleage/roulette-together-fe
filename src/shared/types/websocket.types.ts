@@ -46,6 +46,7 @@ export interface RoomLeavePayload {
 
 export interface RoomJoinedPayload {
   roomId: string;
+  title: string; // v2.8: 방 제목 (기본값: "룰렛 방")
   serverTime: number;
   you: {
     isOwner: boolean;

@@ -252,6 +252,7 @@ spin:result 이벤트 수신 (방 전체, 모든 참가자 결과)
   ```json
   {
     "roomId": "room-abc123",
+    "title": "점심 메뉴 정하기",
     "serverTime": 1234567890,
     "you": {
       "isOwner": true,
@@ -800,7 +801,7 @@ interface RoomStore {
 
 | Event                      | Payload                                                                           | Description                | 수신 대상 |
 | -------------------------- | --------------------------------------------------------------------------------- | -------------------------- | --------- |
-| `room:joined`              | `{ roomId, serverTime, you: { isOwner, nickname, rid } }`                         | 방 입장 완료               | 본인      |
+| `room:joined`              | `{ roomId, title, serverTime, you: { isOwner, nickname, rid } }`                  | 방 입장 완료               | 본인      |
 | `room:join:rejected`       | `{ reason }`                                                                      | 방 입장 거부               | 본인      |
 | `room:config`              | `{ roomId, winnersCount, winSentiment, updatedAt }`                               | 방 설정 정보               | 방 전체   |
 | `room:config:rejected`     | `{ roomId, reason }`                                                              | 설정 변경 거부             | 본인      |
@@ -1064,7 +1065,14 @@ http://localhost:3001/api-docs
 8. **결과 표시**: 변경된 닉네임과 함께 당첨/낙첨 결과 표시
 9. **방 나가기**: 참가자는 방 나가기, 방장은 일시 퇴장 (참가자 연결 유지, v2.6)
 
-**백엔드는 이미 구현 완료**되었으므로 (v2.7 기준), 프론트엔드는 이 문서를 참고하여 개발하시면 됩니다.
+**백엔드는 이미 구현 완료**되었으므로 (v2.8 기준), 프론트엔드는 이 문서를 참고하여 개발하시면 됩니다.
+
+### v2.8 주요 업데이트 (2026-01-13)
+
+- ✅ 방 제목을 room:joined 이벤트에 추가
+  - `room:joined` 응답에 `title` 필드 추가
+  - 참가자도 방 입장 시 방 제목을 확인 가능
+  - 기본값: "룰렛 방"
 
 ### v2.7 주요 업데이트 (2026-01-13)
 

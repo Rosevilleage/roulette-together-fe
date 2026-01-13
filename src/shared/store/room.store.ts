@@ -21,6 +21,7 @@ interface SpinState {
 interface RoomStore {
   // Room information
   roomId: string | null;
+  roomTitle: string | null; // v2.8: 방 제목
   role: Role | null;
   isOwner: boolean;
 
@@ -47,6 +48,7 @@ interface RoomStore {
 
   // Actions
   setRoomInfo: (roomId: string, role: Role) => void;
+  setRoomTitle: (title: string) => void; // v2.8: 방 제목 설정
   setMyInfo: (nickname: string, rid: string, isOwner: boolean) => void;
   setConfig: (config: RoomConfig) => void;
   setParticipants: (participants: Participant[], readyCount: number, allReady: boolean) => void;
@@ -62,6 +64,7 @@ interface RoomStore {
 
 const initialState = {
   roomId: null,
+  roomTitle: null,
   role: null,
   isOwner: false,
   myNickname: null,
@@ -82,6 +85,11 @@ export const useRoomStore = create<RoomStore>(set => ({
     set({
       roomId,
       role
+    }),
+
+  setRoomTitle: title =>
+    set({
+      roomTitle: title
     }),
 
   setMyInfo: (nickname, rid, isOwner) =>

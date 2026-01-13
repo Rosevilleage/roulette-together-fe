@@ -31,6 +31,7 @@ import type {
 export const useRoomEvents = (socket: Socket | null): void => {
   const {
     setMyInfo,
+    setRoomTitle,
     setConfig,
     setParticipants,
     setMyReady,
@@ -54,6 +55,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     const handleRoomJoined = (payload: RoomJoinedPayload): void => {
       console.log('[Room] Joined:', payload);
       setMyInfo(payload.you.nickname, payload.you.rid, payload.you.isOwner);
+      setRoomTitle(payload.title); // v2.8: 방 제목 저장
       // 방에 입장하면 방장이 있다고 가정 (방장 본인이거나 방장이 있는 방에 입장)
       setOwnerPresent(true);
 
@@ -307,6 +309,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
   }, [
     socket,
     setMyInfo,
+    setRoomTitle,
     setConfig,
     setParticipants,
     setMyReady,
