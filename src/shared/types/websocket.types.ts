@@ -155,8 +155,13 @@ export interface RoomLeaveRejectedPayload {
 
 export interface RoomClosedPayload {
   roomId: string;
-  reason: 'OWNER_LEFT';
+  reason: 'EXPIRED' | 'DELETED';
   closedAt: number;
+}
+
+export interface RoomOwnerLeftPayload {
+  roomId: string;
+  leftAt: number;
 }
 
 // ============================================
@@ -184,6 +189,7 @@ export const SOCKET_EVENTS = {
   READY_TOGGLE_REJECTED: 'ready:toggle:rejected',
   ROOM_LEFT: 'room:left',
   ROOM_LEAVE_REJECTED: 'room:leave:rejected',
+  ROOM_OWNER_LEFT: 'room:owner:left',
   ROOM_CLOSED: 'room:closed',
   SPIN_RESOLVED: 'spin:resolved',
   SPIN_OUTCOME: 'spin:outcome',

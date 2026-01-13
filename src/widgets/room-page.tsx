@@ -6,6 +6,7 @@ import { useRoomStore } from '@/shared/store/room.store';
 import { useRoomEvents } from '@/shared/hooks/use-room-events';
 import { RoomWaiting } from '@/features/room/room-waiting';
 import { NicknameInputDialog } from '@/features/room/nickname-input-dialog';
+import { getVisitedRoom } from '@/shared/lib/room-storage';
 import type { Role } from '@/shared/types/room.types';
 import { SOCKET_EVENTS } from '@/shared/types/websocket.types';
 
@@ -18,7 +19,19 @@ interface RoomPageProps {
 export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNickname }) => {
   const socket = useSocket();
   const { setRoomInfo, reset, myNickname } = useRoomStore();
-  const [nickname, setNickname] = useState<string>(initialNickname || '');
+
+  // 참가자인 경우 저장된 닉네임을 먼저 확인
+  const getSavedNickname = (): string => {
+    if (role === 'participant' && !initialNickname) {
+      const visitedRoom = getVisitedRoom(roomId);
+      if (visitedRoom?.nickname) {
+        return visitedRoom.nickname;
+      }
+    }
+    return initialNickname || '';
+  };
+
+  const [nickname, setNickname] = useState<string>(getSavedNickname);
 
   // Setup room events
   useRoomEvents(socket);

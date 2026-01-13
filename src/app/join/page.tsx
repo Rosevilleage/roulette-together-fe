@@ -1,16 +1,30 @@
 'use client';
 
-import { useState, useCallback, ReactElement } from 'react';
+import { useState, useCallback, useEffect, ReactElement } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
-import { ArrowLeftIcon, QrCodeIcon } from 'lucide-react';
+import { ArrowLeftIcon, QrCodeIcon, ClockIcon, TrashIcon } from 'lucide-react';
+import {
+  getVisitedRooms,
+  removeVisitedRoom,
+  cleanupOldVisitedRooms,
+  type VisitedRoomInfo
+} from '@/shared/lib/room-storage';
+
+// 초기 방문 기록 불러오기 (컴포넌트 외부에서 실행)
+const getInitialVisitedRooms = (): VisitedRoomInfo[] => {
+  if (typeof window === 'undefined') return [];
+  cleanupOldVisitedRooms();
+  return getVisitedRooms();
+};
 
 export default function JoinPage(): ReactElement {
   const router = useRouter();
   const [roomUrl, setRoomUrl] = useState<string>('');
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [visitedRooms, setVisitedRooms] = useState<VisitedRoomInfo[]>(getInitialVisitedRooms);
 
   const handleJoinByUrl = useCallback((): void => {
     try {
@@ -37,6 +51,44 @@ export default function JoinPage(): ReactElement {
     setIsScanning(false);
   };
 
+  const handleJoinVisitedRoom = useCallback(
+    (room: VisitedRoomInfo): void => {
+      router.push(`/room/${room.roomId}?role=participant`);
+    },
+    [router]
+  );
+
+  const handleRemoveVisitedRoom = useCallback((roomId: string, e: React.MouseEvent): void => {
+    e.stopPropagation();
+    removeVisitedRoom(roomId);
+    setVisitedRooms(prev => prev.filter(room => room.roomId !== roomId));
+  }, []);
+
+  const [currentTime, setCurrentTime] = useState<number>(() => Date.now());
+
+  // 1분마다 현재 시간 업데이트
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatRelativeTime = useCallback(
+    (timestamp: number): string => {
+      const diff = currentTime - timestamp;
+      const minutes = Math.floor(diff / (1000 * 60));
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+      if (minutes < 1) return '방금 전';
+      if (minutes < 60) return `${minutes}분 전`;
+      if (hours < 24) return `${hours}시간 전`;
+      return `${days}일 전`;
+    },
+    [currentTime]
+  );
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-linear-to-b from-background to-muted/20">
       <div className="w-full max-w-md flex flex-col gap-6">
@@ -50,6 +102,39 @@ export default function JoinPage(): ReactElement {
             <p className="text-sm text-muted-foreground">QR 코드를 스캔하거나 링크를 입력하세요</p>
           </div>
         </div>
+
+        {/* Visited Rooms Section */}
+        {visitedRooms.length > 0 && (
+          <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-4 space-y-2">
+            <p className="text-sm font-medium text-muted-foreground px-1">최근 참가한 방</p>
+            {visitedRooms.map(room => (
+              <div
+                key={room.roomId}
+                onClick={() => handleJoinVisitedRoom(room)}
+                className="flex items-center justify-between p-3 rounded-xl bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors group"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{room.roomName || `방 ${room.roomId.slice(0, 8)}...`}</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>{room.nickname}</span>
+                    <span className="flex items-center gap-1">
+                      <ClockIcon className="w-3 h-3" />
+                      {formatRelativeTime(room.visitedAt)}
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={e => handleRemoveVisitedRoom(room.roomId, e)}
+                >
+                  <TrashIcon className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* QR Scan Section */}
         <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6">

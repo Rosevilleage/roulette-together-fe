@@ -39,6 +39,9 @@ interface RoomStore {
   // My ready state (for participants only)
   myReady: boolean;
 
+  // Owner presence state (for participants)
+  ownerPresent: boolean;
+
   // Spin state
   spin: SpinState | null;
 
@@ -48,6 +51,7 @@ interface RoomStore {
   setConfig: (config: RoomConfig) => void;
   setParticipants: (participants: Participant[], readyCount: number, allReady: boolean) => void;
   setMyReady: (ready: boolean) => void;
+  setOwnerPresent: (present: boolean) => void;
   updateMyNickname: (nickname: string) => void;
   startSpin: (spinId: string) => void;
   setMyOutcome: (outcome: 'WIN' | 'LOSE') => void;
@@ -67,6 +71,7 @@ const initialState = {
   readyCount: 0,
   allReady: false,
   myReady: false,
+  ownerPresent: true,
   spin: null
 };
 
@@ -101,6 +106,11 @@ export const useRoomStore = create<RoomStore>(set => ({
   setMyReady: ready =>
     set({
       myReady: ready
+    }),
+
+  setOwnerPresent: present =>
+    set({
+      ownerPresent: present
     }),
 
   updateMyNickname: nickname =>

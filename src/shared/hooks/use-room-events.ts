@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import type { Socket } from 'socket.io-client';
 import { useRoomStore } from '@/shared/store/room.store';
-import { removeOwnedRoom } from '@/shared/lib/room-storage';
+import { removeOwnedRoom, saveVisitedRoom, removeVisitedRoom } from '@/shared/lib/room-storage';
 import { SOCKET_EVENTS } from '@/shared/types/websocket.types';
 import type {
   RoomJoinedPayload,
@@ -14,6 +14,7 @@ import type {
   ReadyToggleRejectedPayload,
   RoomLeftPayload,
   RoomLeaveRejectedPayload,
+  RoomOwnerLeftPayload,
   RoomClosedPayload,
   SpinResolvedPayload,
   SpinOutcomePayload,
@@ -31,6 +32,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     setConfig,
     setParticipants,
     setMyReady,
+    setOwnerPresent,
     updateMyNickname,
     startSpin,
     setMyOutcome,
@@ -50,6 +52,13 @@ export const useRoomEvents = (socket: Socket | null): void => {
     const handleRoomJoined = (payload: RoomJoinedPayload): void => {
       console.log('[Room] Joined:', payload);
       setMyInfo(payload.you.nickname, payload.you.rid, payload.you.isOwner);
+      // 방에 입장하면 방장이 있다고 가정 (방장 본인이거나 방장이 있는 방에 입장)
+      setOwnerPresent(true);
+
+      // 참가자인 경우 방문 기록 저장
+      if (!payload.you.isOwner) {
+        saveVisitedRoom(payload.roomId, payload.you.nickname);
+      }
     };
 
     const handleRoomJoinRejected = (payload: RoomJoinRejectedPayload): void => {
@@ -69,15 +78,21 @@ export const useRoomEvents = (socket: Socket | null): void => {
         INVALID_RID: '세션 정보가 유효하지 않습니다.'
       };
 
-      if (roomId && isOwner) {
-        const shouldRemove =
-          payload.reason === 'INVALID_OWNER_TOKEN' ||
-          payload.reason === 'MISSING_OWNER_TOKEN' ||
-          payload.reason === 'OWNER_ALREADY_EXISTS';
+      if (roomId) {
+        if (isOwner) {
+          const shouldRemove =
+            payload.reason === 'INVALID_OWNER_TOKEN' ||
+            payload.reason === 'MISSING_OWNER_TOKEN' ||
+            payload.reason === 'OWNER_ALREADY_EXISTS';
 
-        if (shouldRemove) {
-          console.log('[Room] Removing invalid owned room from storage:', roomId);
-          removeOwnedRoom(roomId);
+          if (shouldRemove) {
+            console.log('[Room] Removing invalid owned room from storage:', roomId);
+            removeOwnedRoom(roomId);
+          }
+        } else {
+          // 참가자인 경우 방문 기록 삭제 (방이 존재하지 않음)
+          console.log('[Room] Removing visited room from storage:', roomId);
+          removeVisitedRoom(roomId);
         }
       }
 
@@ -171,11 +186,29 @@ export const useRoomEvents = (socket: Socket | null): void => {
       alert(`방 나가기가 거부되었습니다: ${messages[payload.reason] || payload.reason}`);
     };
 
+    const handleRoomOwnerLeft = (payload: RoomOwnerLeftPayload): void => {
+      console.log('[Room] Owner left:', payload);
+
+      // Update owner presence state
+      setOwnerPresent(false);
+
+      // Show notification to participants
+      alert('방장이 나갔습니다. 방장이 돌아올 때까지 대기하거나 나갈 수 있습니다.');
+    };
+
     const handleRoomClosed = (payload: RoomClosedPayload): void => {
       console.log('[Room] Room closed:', payload);
 
+      // 방이 닫히면 방문 기록에서 삭제
+      removeVisitedRoom(payload.roomId);
+
+      const messages: Record<string, string> = {
+        EXPIRED: '방이 만료되어 삭제되었습니다.',
+        DELETED: '방이 삭제되었습니다.'
+      };
+
       // Show alert to participants
-      alert('방장이 방을 나가 방이 삭제되었습니다');
+      alert(messages[payload.reason] || '방이 삭제되었습니다.');
 
       // Navigate to home after 1 second
       setTimeout(() => {
@@ -233,6 +266,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     socket.on(SOCKET_EVENTS.READY_TOGGLE_REJECTED, handleReadyToggleRejected);
     socket.on(SOCKET_EVENTS.ROOM_LEFT, handleRoomLeft);
     socket.on(SOCKET_EVENTS.ROOM_LEAVE_REJECTED, handleRoomLeaveRejected);
+    socket.on(SOCKET_EVENTS.ROOM_OWNER_LEFT, handleRoomOwnerLeft);
     socket.on(SOCKET_EVENTS.ROOM_CLOSED, handleRoomClosed);
     socket.on(SOCKET_EVENTS.SPIN_RESOLVED, handleSpinResolved);
     socket.on(SOCKET_EVENTS.SPIN_OUTCOME, handleSpinOutcome);
@@ -254,6 +288,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
       socket.off(SOCKET_EVENTS.READY_TOGGLE_REJECTED, handleReadyToggleRejected);
       socket.off(SOCKET_EVENTS.ROOM_LEFT, handleRoomLeft);
       socket.off(SOCKET_EVENTS.ROOM_LEAVE_REJECTED, handleRoomLeaveRejected);
+      socket.off(SOCKET_EVENTS.ROOM_OWNER_LEFT, handleRoomOwnerLeft);
       socket.off(SOCKET_EVENTS.ROOM_CLOSED, handleRoomClosed);
       socket.off(SOCKET_EVENTS.SPIN_RESOLVED, handleSpinResolved);
       socket.off(SOCKET_EVENTS.SPIN_OUTCOME, handleSpinOutcome);
@@ -266,6 +301,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     setConfig,
     setParticipants,
     setMyReady,
+    setOwnerPresent,
     updateMyNickname,
     startSpin,
     setMyOutcome,
