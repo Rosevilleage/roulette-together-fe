@@ -33,8 +33,7 @@ POST /rooms API 호출
 응답 수신:
   - roomId
   - title (방 제목, 기본값: "룰렛 방")
-  - ownerUrl (방장용 링크)
-  - participantUrl (참가자용 링크)
+  - createdAt
   - ownerToken은 HTTP-only 쿠키로 자동 저장됨 (owner_token_{roomId}, JSON 형식: {roomId, token})
   ↓
 방 입장 화면으로 이동
@@ -154,8 +153,9 @@ spin:result 이벤트 수신 (방 전체, 모든 참가자 결과)
       "winSentiment": "POSITIVE" // 선택, 기본값 "POSITIVE"
     }
     ```
-  - Response: `{ roomId, title, ownerUrl, participantUrl, createdAt }`
+  - Response: `{ roomId, title, createdAt }`
   - ownerToken은 HTTP-only 쿠키로 자동 설정됨 (보안 강화, JSON 형식: {roomId, token})
+  - 프론트엔드에서 URL 조합: `/room/${roomId}?role=owner` (방장), `/room/${roomId}?role=participant` (참가자)
 
 - `GET /rooms` - 내가 만든 활성 방 목록 조회 (v2.2)
   - Request: 쿠키 (`owner_token_*`)를 자동으로 포함
@@ -191,8 +191,9 @@ spin:result 이벤트 수신 (방 전체, 모든 참가자 결과)
 **쿼리 파라미터:**
 
 - `role`: 'owner' | 'participant' (필수)
-- `token`: 방장 인증 토큰 (role=owner일 때만)
 - `nickname`: 초기 닉네임 (선택)
+
+**참고**: 방장 인증 토큰은 쿠키로 자동 전송됩니다 (쿼리 파라미터로 전달 불필요)
 
 **기능:**
 
@@ -746,10 +747,10 @@ interface RoomStore {
 
 ### HTTP API
 
-| Method | Endpoint | Description              | Request Body                                                                                                                      | Response                                                                                                        | Notes                                                                  |
-| ------ | -------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| POST   | `/rooms` | 방 생성                  | `{ nickname?: string, winnersCount?: number, winSentiment?: 'POSITIVE'\|'NEGATIVE' }` (미입력 시 기본값: "생성자", 1, "POSITIVE") | `{ roomId, ownerUrl, participantUrl, createdAt }`                                                               | ownerToken은 `owner_token_{roomId}` HTTP-only 쿠키로 자동 설정 (2시간) |
-| GET    | `/rooms` | 내가 만든 방 목록 (v2.2) | 없음 (쿠키 자동 포함)                                                                                                             | `{ rooms: [{ roomId, participantCount, winnersCount, winSentiment, lastActivity, ownerNickname }], queriedAt }` | 쿠키의 모든 `owner_token_*`를 파싱하여 활성 방 목록 반환               |
+| Method | Endpoint | Description              | Request Body                                          | Response                                                                                                               | Notes                                                          |
+| ------ | -------- | ------------------------ | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| POST   | `/rooms` | 방 생성                  | `{ title?, nickname?, winnersCount?, winSentiment? }` | `{ roomId, title, createdAt }`                                                                                         | ownerToken은 HTTP-only 쿠키로 자동 설정. URL은 프론트에서 조합 |
+| GET    | `/rooms` | 내가 만든 방 목록 (v2.2) | 없음 (쿠키 자동 포함)                                 | `{ rooms: [{ roomId, title, participantCount, winnersCount, winSentiment, lastActivity, ownerNickname }], queriedAt }` | 쿠키의 모든 `owner_token_*`를 파싱하여 활성 방 목록 반환       |
 
 ### WebSocket 이벤트
 
@@ -1020,7 +1021,7 @@ http://localhost:3001/api-docs
 
 이 프로젝트는 다음과 같은 핵심 기능을 구현합니다:
 
-1. **방 생성**: HTTP API로 방 생성 (제목 포함) 및 방장/참가자 링크 발급
+1. **방 생성**: HTTP API로 방 생성 (제목 포함), URL은 프론트에서 조합
 2. **방 목록 조회**: 사용자가 만든 활성 방 목록 조회 (제목 포함, v2.2)
 3. **방 입장**: WebSocket 연결 및 역할(방장/참가자) 구분
 4. **닉네임 관리**: 입력하지 않으면 자동 생성 ('참가자 N'), 입장 후 변경 가능 (v2.1)
@@ -1030,7 +1031,145 @@ http://localhost:3001/api-docs
 8. **결과 표시**: 변경된 닉네임과 함께 당첨/낙첨 결과 표시
 9. **방 나가기**: 참가자는 방 나가기, 방장은 방 삭제 (v2.2)
 
-**백엔드는 이미 구현 완료**되었으므로 (v2.4 기준), 프론트엔드는 이 문서를 참고하여 개발하시면 됩니다.
+**백엔드는 이미 구현 완료**되었으므로 (v2.5 기준), 프론트엔드도 대부분 구현이 완료되었습니다.
+
+---
+
+## 프론트엔드 구현 현황 (2026-01-13 기준)
+
+### 구현 완성도: 약 95%
+
+### ✅ 완전 구현된 기능
+
+#### 라우팅 구조
+
+- `/` - 메인 메뉴 (MainMenu 컴포넌트)
+- `/room/[roomId]` - 방 입장 페이지 (RoomPage 위젯)
+- `/join` - 방 참가하기 페이지 (URL 입력 방식)
+- `/solo` - 솔로 룰렛 (라우트만 존재, 구현 예정)
+
+#### WebSocket 통신
+
+- **useSocket.ts**: 전역 싱글톤 소켓 인스턴스
+  - `withCredentials: true` 설정 (쿠키 전송)
+  - WebSocket 전용 트랜스포트
+  - 자동 재연결: 5회 시도, 1초 간격
+- **useRoomEvents.ts**: 모든 WebSocket 이벤트 핸들러 등록
+  - 타입 안전성 보장 (모든 페이로드 타입 정의됨)
+  - 에러 메시지 한글화
+
+#### 상태 관리 (Zustand)
+
+- `room.store.ts`: 계획서의 RoomStore 인터페이스와 완벽 일치
+- 방 정보, 설정, 참가자, 스핀 상태 모두 관리
+
+#### 방장 기능 (OwnerView)
+
+- 참가자 목록 실시간 표시 (준비 상태 포함)
+- 준비 완료 현황 요약 (N/M명 준비)
+- 룰렛 설정 표시 (winnersCount, winSentiment)
+- 룰렛 돌리기 버튼 (allReady=true일 때만 활성화)
+- 링크 공유 기능 (Web Share API + 클립보드)
+- 방 나가기 (방 삭제) 기능
+
+#### 참가자 기능 (ParticipantView)
+
+- 닉네임 표시 및 수정 기능
+- 준비 상태 토글 버튼
+- 룰렛 설정 표시 (읽기 전용)
+- 방 나가기 기능
+
+#### 방 생성 (CreateRoomStepper)
+
+- 3단계 Stepper UI (방 정보 → 룰렛 설정 → 확인)
+- 방 제목, 닉네임, winnersCount, winSentiment 입력
+- React Query를 통한 API 호출
+
+#### 내가 만든 방 목록 (RoomList)
+
+- `GET /rooms` API 연동
+- 방 정보 표시: 제목, 소유자 닉네임, 참가자 수, 당첨자 수, 감정, 마지막 활동 시간
+- 클릭 시 해당 방으로 입장
+- 30분 재연결 안내 표시
+
+#### 방 나가기 (RoomHeader)
+
+- 참가자: 방 나가기 버튼 + 확인 다이얼로그
+- 방장: 나가기 + 방 삭제 버튼 + 확인 다이얼로그
+- `room:leave` 이벤트 전송
+- `room:left` / `room:closed` 이벤트 처리
+
+#### 로컬 스토리지 관리 (room-storage.ts)
+
+- 방장이 생성한 방 정보 저장/조회
+- 7일 이상 오래된 방 자동 정리
+
+### ⏳ 부분 구현 / 미구현
+
+| 기능                   | 상태         | 비고                                |
+| ---------------------- | ------------ | ----------------------------------- |
+| 솔로 룰렛 (`/solo`)    | ❌ 미구현    | 라우트만 존재                       |
+| QR 코드 스캔 (`/join`) | ⏳ 부분 구현 | UI만 있음, 카메라 기능 미구현       |
+| 룰렛 애니메이션        | ⏳ 부분 구현 | 기본 애니메이션만 구현              |
+| 결과 화면              | ⏳ 구현 필요 | spin:result 이벤트 처리는 되어 있음 |
+
+### 기술 스택 (실제 사용 중)
+
+- **Framework**: Next.js 16 (App Router, React 19)
+- **Language**: TypeScript (strict mode)
+- **Styling**: Tailwind CSS 4
+- **UI Components**: shadcn/ui, @base-ui/react, @react-bits
+- **State Management**: Zustand
+- **Data Fetching**: TanStack Query (React Query)
+- **Real-time**: Socket.IO Client
+- **Animation**: Framer Motion (`motion`), GSAP
+- **QR Codes**: qrcode.react
+- **Package Manager**: pnpm
+
+### 주요 파일 경로
+
+```
+src/
+├── app/
+│   ├── page.tsx                    # 메인 페이지
+│   ├── room/[roomId]/page.tsx      # 방 페이지
+│   ├── join/page.tsx               # 참가 페이지
+│   └── solo/page.tsx               # 솔로 룰렛 (미구현)
+├── widgets/
+│   ├── main-menu.tsx               # 메인 메뉴 위젯
+│   └── room-page.tsx               # 방 페이지 위젯
+├── features/room/
+│   ├── create-room-stepper.tsx     # 방 생성 스테퍼
+│   ├── room-waiting.tsx            # 대기 화면
+│   ├── owner-view.tsx              # 방장 뷰
+│   ├── participant-view.tsx        # 참가자 뷰
+│   ├── room-header.tsx             # 방 헤더 (나가기 버튼)
+│   └── room-list.tsx               # 내가 만든 방 목록
+├── shared/
+│   ├── hooks/
+│   │   ├── use-socket.ts           # 소켓 연결 훅
+│   │   └── use-room-events.ts      # 이벤트 핸들러 훅
+│   ├── store/
+│   │   └── room.store.ts           # Zustand 스토어
+│   ├── types/
+│   │   ├── websocket.types.ts      # WebSocket 이벤트 타입
+│   │   └── room.types.ts           # 방 관련 타입
+│   ├── api/
+│   │   ├── room.api.ts             # API 호출 함수
+│   │   └── room.queries.ts         # React Query 훅
+│   └── lib/
+│       └── room-storage.ts         # 로컬 스토리지 유틸
+```
+
+---
+
+### v2.5 주요 업데이트 (2026-01-13)
+
+- ✅ 방 생성 응답 간소화
+  - `ownerUrl`, `participantUrl` 필드 제거
+  - 응답: `{ roomId, title, createdAt }`만 반환
+  - URL은 프론트엔드에서 조합: `/room/${roomId}?role=owner` 또는 `/room/${roomId}?role=participant`
+  - `FRONTEND_URL` 환경변수 의존성 제거
 
 ### v2.4 주요 업데이트 (2026-01-12)
 
@@ -1066,10 +1205,24 @@ http://localhost:3001/api-docs
 - ✅ `room:closed` 이벤트로 참가자에게 방 삭제 알림
 - ✅ 비활성 방 쿠키 자동 삭제: `GET /rooms` 호출 시 만료된 방의 쿠키 자동 정리
 
-### v2.1 주요 업데이트 (2025-01-09)
+### v2.1 주요 업데이트 (2026-01-09)
 
 - ✅ 참가자 준비 상태 시스템 추가
 - ✅ 닉네임 변경 기능 추가
 - ✅ 방장에게 참가자 리스트 실시간 전송
 - ✅ 모든 참가자 준비 완료 시에만 룰렛 시작 가능
 - ✅ 준비 상태는 룰렛 회전 후에도 유지
+
+---
+
+## 프론트엔드 버전 이력
+
+### v2.6 프론트엔드 업데이트 (2026-01-13)
+
+- ✅ 프론트엔드 구현 현황 섹션 추가
+- ✅ 백엔드 v2.5 API 스펙에 맞게 타입 정의 업데이트
+  - `CreateRoomResponse`에서 `ownerUrl`, `participantUrl` 필드 제거
+  - URL은 프론트엔드에서 직접 생성: `/room/${roomId}?role=owner`
+- ✅ FSD(Feature-Sliced Design) 아키텍처 적용
+- ✅ TanStack Query (React Query) 도입
+- ✅ 주요 파일 경로 문서화

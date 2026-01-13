@@ -20,9 +20,8 @@ export const CreateRoomForm: React.FC = () => {
         // localStorage에 생성한 방 정보 저장
         saveOwnedRoom(response.roomId);
 
-        // ownerUrl을 사용하여 방으로 이동 (쿠키에 토큰이 자동으로 설정됨)
-        const url = new URL(response.ownerUrl, window.location.origin);
-        router.push(url.pathname + url.search);
+        // 방으로 이동 (쿠키에 토큰이 자동으로 설정됨)
+        router.push(`/room/${response.roomId}?role=owner`);
       }
     });
   };

@@ -7,6 +7,7 @@ import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Button } from '@/shared/ui/button';
 import { useCreateRoomMutation } from '@/shared/api/room.queries';
+import { saveOwnedRoom } from '@/shared/lib/room-storage';
 import type { WinSentiment } from '@/shared/types/room.types';
 
 interface CreateRoomStepperProps {
@@ -45,18 +46,10 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
 
     createRoom(request, {
       onSuccess: response => {
-        // Extract token from ownerUrl (format: /room/:roomId?role=owner&token=xxx)
-        const url = new URL(response.ownerUrl, window.location.origin);
-        const token = url.searchParams.get('token');
-
-        // Navigate to room with owner role and token
-        if (token) {
-          router.push(`/room/${response.roomId}?role=owner&token=${token}`);
-        } else {
-          // Fallback: use the full ownerUrl
-          router.push(response.ownerUrl);
-        }
-
+        // v2.5: URL은 프론트엔드에서 직접 생성
+        // ownerToken은 HTTP-only 쿠키로 자동 저장됨
+        saveOwnedRoom(response.roomId);
+        router.push(`/room/${response.roomId}?role=owner`);
         onComplete?.();
       }
     });
