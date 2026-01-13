@@ -11,7 +11,7 @@ import {
   AlertDialogFooter,
   AlertDialogAction,
   AlertDialogCancel
-} from '@/shared/ui/alert-dialog';
+} from '@/shared/ui/AlertDialog';
 
 export function GlobalAlertDialog(): ReactElement {
   const { isOpen, type, title, description, confirmText, cancelText, closeAlert, handleConfirm, handleCancel } =

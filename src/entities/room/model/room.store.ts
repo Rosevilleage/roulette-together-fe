@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import type { Role, WinSentiment } from '@/shared/types/room.types';
-import type { Participant } from '@/shared/types/websocket.types';
+import type { Role, WinSentiment } from './room.types';
+import type { Participant } from './websocket.types';
 
 interface RoomConfig {
   winnersCount: number;

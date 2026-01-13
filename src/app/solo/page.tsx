@@ -2,9 +2,9 @@
 
 import { useState, useEffect, ReactElement } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Badge } from '@/shared/ui/badge';
+import { Button } from '@/shared/ui/Button';
+import { Input } from '@/shared/ui/Input';
+import { Badge } from '@/shared/ui/Badge';
 import { useSoloRoulette } from '@/shared/hooks/use-solo-roulette';
 import { useAlertStore } from '@/shared/store/alert.store';
 import { ArrowLeftIcon, PlusIcon, XIcon } from 'lucide-react';

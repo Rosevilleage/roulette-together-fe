@@ -1,9 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useRoomsQuery } from '@/shared/api/room.queries';
-import { Card } from '@/shared/ui/card';
-import { Button } from '@/shared/ui/button';
+import { useRoomsQuery } from '@/entities/room/api/room.queries';
+import { Card } from '@/shared/ui/Card';
+import { Button } from '@/shared/ui/Button';
 import { UsersIcon, TrophyIcon, Clock } from 'lucide-react';
 
 const formatLastActivity = (timestamp: number, now: number): string => {

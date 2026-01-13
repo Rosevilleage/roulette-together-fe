@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
-import { useCreateRoomMutation } from '@/shared/api/room.queries';
-import { saveOwnedRoom } from '@/shared/lib/room-storage';
+import { Button } from '@/shared/ui/Button';
+import { Input } from '@/shared/ui/Input';
+import { Label } from '@/shared/ui/Label';
+import { useCreateRoomMutation } from '@/entities/room/api/room.queries';
+import { saveOwnedRoom } from '@/entities/room/lib/room-storage';
 
 export const CreateRoomForm: React.FC = () => {
   const router = useRouter();

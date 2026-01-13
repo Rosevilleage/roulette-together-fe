@@ -1,10 +1,10 @@
 'use client';
 
 import { useParams, useSearchParams } from 'next/navigation';
-import { RoomPage } from '@/widgets/room-page';
+import { RoomPage } from '@/widgets/RoomPage';
 import { ReactElement, useMemo } from 'react';
-import { isOwnedRoom } from '@/shared/lib/room-storage';
-import type { Role } from '@/shared/types/room.types';
+import { isOwnedRoom } from '@/entities/room/lib/room-storage';
+import type { Role } from '@/entities/room/model/room.types';
 
 export default function Page(): ReactElement {
   const params = useParams();

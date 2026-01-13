@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from './client';
-import { roomKeys } from './query-keys';
-import type { CreateRoomRequest, CreateRoomResponse, GetRoomsResponse } from '@/shared/types/room.types';
+import { apiClient } from '@/shared/api/client';
+import type { CreateRoomRequest, CreateRoomResponse, GetRoomsResponse } from '../model/room.types';
+
+export const roomKeys = {
+  all: ['rooms'] as const,
+  lists: () => [...roomKeys.all, 'list'] as const,
+  list: (filters?: Record<string, unknown>) => [...roomKeys.lists(), filters] as const,
+  details: () => [...roomKeys.all, 'detail'] as const,
+  detail: (roomId: string) => [...roomKeys.details(), roomId] as const
+};
 
 /**
  * 방 목록 조회 Query Hook

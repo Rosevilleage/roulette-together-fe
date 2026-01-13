@@ -1,4 +1,4 @@
-import type { CreateRoomResponse, CreateRoomRequest, GetRoomsResponse } from '@/shared/types/room.types';
+import type { CreateRoomResponse, CreateRoomRequest, GetRoomsResponse } from '../model/room.types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 

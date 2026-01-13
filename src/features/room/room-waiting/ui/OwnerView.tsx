@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useRoomStore } from '@/shared/store/room.store';
+import { useRoomStore } from '@/entities/room/model/room.store';
 import { useSocket } from '@/shared/hooks/use-socket';
-import { Button } from '@/shared/ui/button';
-import { Card } from '@/shared/ui/card';
-import { Badge } from '@/shared/ui/badge';
+import { Button } from '@/shared/ui/Button';
+import { Card } from '@/shared/ui/Card';
+import { Badge } from '@/shared/ui/Badge';
 import { ShareIcon, CheckCircle2, Clock, Users, Copy, Check } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 

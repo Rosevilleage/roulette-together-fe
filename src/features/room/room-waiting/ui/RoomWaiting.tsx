@@ -1,9 +1,9 @@
 'use client';
 
-import { useRoomStore } from '@/shared/store/room.store';
-import { RoomHeader } from './room-header';
-import { OwnerView } from './owner-view';
-import { ParticipantView } from './participant-view';
+import { useRoomStore } from '@/entities/room/model/room.store';
+import { RoomHeader } from './RoomHeader';
+import { OwnerView } from './OwnerView';
+import { ParticipantView } from './ParticipantView';
 
 export const RoomWaiting: React.FC = () => {
   const { isOwner, myNickname } = useRoomStore();

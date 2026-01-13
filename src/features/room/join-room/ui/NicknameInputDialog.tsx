@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/ui/dialog';
-import { Input } from '@/shared/ui/input';
-import { Button } from '@/shared/ui/button';
-import { Label } from '@/shared/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/ui/Dialog';
+import { Input } from '@/shared/ui/Input';
+import { Button } from '@/shared/ui/Button';
+import { Label } from '@/shared/ui/Label';
 
 interface NicknameInputDialogProps {
   open: boolean;

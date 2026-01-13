@@ -2,14 +2,14 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useSocket } from '@/shared/hooks/use-socket';
-import { useRoomStore } from '@/shared/store/room.store';
-import { useRoomEvents } from '@/shared/hooks/use-room-events';
-import { RoomWaiting } from '@/features/room/room-waiting';
-import { NicknameInputDialog } from '@/features/room/nickname-input-dialog';
-import { getVisitedRoom } from '@/shared/lib/room-storage';
+import { useRoomStore } from '@/entities/room/model/room.store';
+import { useRoomEvents } from '@/features/room/room-events/useRoomEvents';
+import { RoomWaiting } from '@/features/room/room-waiting/ui/RoomWaiting';
+import { NicknameInputDialog } from '@/features/room/join-room/ui/NicknameInputDialog';
+import { getVisitedRoom } from '@/entities/room/lib/room-storage';
 import { showConfirm, showAlert } from '@/shared/store/alert.store';
-import type { Role } from '@/shared/types/room.types';
-import { SOCKET_EVENTS } from '@/shared/types/websocket.types';
+import type { Role } from '@/entities/room/model/room.types';
+import { SOCKET_EVENTS } from '@/entities/room/model/websocket.types';
 import { useRouter } from 'next/navigation';
 
 interface RoomPageProps {

@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useRoomStore } from '@/shared/store/room.store';
+import { useRoomStore } from '@/entities/room/model/room.store';
 import { useSocket } from '@/shared/hooks/use-socket';
-import { Button } from '@/shared/ui/button';
-import { Card } from '@/shared/ui/card';
-import { Badge } from '@/shared/ui/badge';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
+import { Button } from '@/shared/ui/Button';
+import { Card } from '@/shared/ui/Card';
+import { Badge } from '@/shared/ui/Badge';
+import { Input } from '@/shared/ui/Input';
+import { Label } from '@/shared/ui/Label';
 import { CheckCircle2, Clock, Edit2, Save, AlertTriangle } from 'lucide-react';
 
 export const ParticipantView: React.FC = () => {

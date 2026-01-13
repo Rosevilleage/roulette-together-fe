@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { useSocket } from '@/shared/hooks/use-socket';
-import { useRoomStore } from '@/shared/store/room.store';
-import { Button } from '@/shared/ui/button';
+import { useRoomStore } from '@/entities/room/model/room.store';
+import { Button } from '@/shared/ui/Button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,9 +13,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle
-} from '@/shared/ui/alert-dialog';
-import { SOCKET_EVENTS } from '@/shared/types/websocket.types';
-import type { RoomLeavePayload } from '@/shared/types/websocket.types';
+} from '@/shared/ui/AlertDialog';
+import { SOCKET_EVENTS } from '@/entities/room/model/websocket.types';
+import type { RoomLeavePayload } from '@/entities/room/model/websocket.types';
 import { LogOutIcon } from 'lucide-react';
 
 export const RoomHeader: React.FC = () => {

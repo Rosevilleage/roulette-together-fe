@@ -2,8 +2,8 @@
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { getQueryClient } from '@/shared/lib/query-client';
-import { GlobalAlertDialog } from '@/shared/ui/global-alert-dialog';
+import { getQueryClient } from '@/shared/lib/query_client';
+import { GlobalAlertDialog } from '@/shared/ui/GlobalAlertDialog';
 import type { ReactNode } from 'react';
 
 interface ProvidersProps {

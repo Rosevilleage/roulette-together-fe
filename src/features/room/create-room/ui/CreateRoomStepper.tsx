@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Stepper, { Step } from '@/shared/ui/Stepper';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
-import { Button } from '@/shared/ui/button';
-import { useCreateRoomMutation } from '@/shared/api/room.queries';
-import { saveOwnedRoom } from '@/shared/lib/room-storage';
-import type { WinSentiment } from '@/shared/types/room.types';
+import { Input } from '@/shared/ui/Input';
+import { Label } from '@/shared/ui/Label';
+import { Button } from '@/shared/ui/Button';
+import { useCreateRoomMutation } from '@/entities/room/api/room.queries';
+import { saveOwnedRoom } from '@/entities/room/lib/room-storage';
+import type { WinSentiment } from '@/entities/room/model/room.types';
 
 interface CreateRoomStepperProps {
   onComplete?: () => void;

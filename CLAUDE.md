@@ -116,6 +116,22 @@ The room page renders different views based on role:
 
 ## Code Quality Standards
 
+### File & Folder Naming Conventions
+
+| Category             | Convention   | Example                                |
+| -------------------- | ------------ | -------------------------------------- |
+| **React Components** | PascalCase   | `RoomHeader.tsx`, `CreateRoomForm.tsx` |
+| **Custom Hooks**     | camelCase    | `useSocket.ts`, `useRoomEvents.ts`     |
+| **Type Definitions** | dot notation | `room.types.ts`, `websocket.types.ts`  |
+| **Constants/Config** | snake_case   | `query_keys.ts`, `api_config.ts`       |
+| **Utilities**        | snake_case   | `room_storage.ts`, `format_utils.ts`   |
+| **Folders**          | kebab-case   | `create-room/`, `join-room/`           |
+
+**Additional Rules:**
+
+- **Barrel files (index.ts)**: Not used - import directly from file paths
+- **Test files**: Target filename + `.test.ts` or `.spec.ts`
+
 ### TypeScript Rules
 
 - **Strict mode enabled**: All code must pass strict TypeScript checks

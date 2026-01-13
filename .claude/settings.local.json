@@ -5,7 +5,8 @@
       "Bash(pnpm lint:fix:*)",
       "Bash(pnpm build:*)",
       "Bash(pnpm add:*)",
-      "Bash(pnpm exec tsc:*)"
+      "Bash(pnpm exec tsc:*)",
+      "Bash(git mv:*)"
     ]
   }
 }

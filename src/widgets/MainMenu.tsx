@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-import { Button } from '@/shared/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/shared/ui/dialog';
-import { CreateRoomStepper } from '@/features/room/create-room-stepper';
-import { RoomList } from '@/features/room/room-list';
+import { Button } from '@/shared/ui/Button';
+import { Dialog, DialogContent, DialogTrigger } from '@/shared/ui/Dialog';
+import { CreateRoomStepper } from '@/features/room/create-room/ui/CreateRoomStepper';
+import { RoomList } from '@/features/room/create-room/ui/RoomList';
 import { PlusIcon, QrCodeIcon, DicesIcon } from 'lucide-react';
 import Shuffle from '@/shared/ui/Shuffle';
 

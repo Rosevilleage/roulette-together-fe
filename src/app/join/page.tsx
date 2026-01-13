@@ -2,9 +2,9 @@
 
 import { useState, useCallback, useEffect, ReactElement } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
+import { Button } from '@/shared/ui/Button';
+import { Input } from '@/shared/ui/Input';
+import { Label } from '@/shared/ui/Label';
 import { useAlertStore } from '@/shared/store/alert.store';
 import { ArrowLeftIcon, QrCodeIcon, ClockIcon, TrashIcon } from 'lucide-react';
 import {
@@ -12,7 +12,7 @@ import {
   removeVisitedRoom,
   cleanupOldVisitedRooms,
   type VisitedRoomInfo
-} from '@/shared/lib/room-storage';
+} from '@/entities/room/lib/room-storage';
 
 // 초기 방문 기록 불러오기 (컴포넌트 외부에서 실행)
 const getInitialVisitedRooms = (): VisitedRoomInfo[] => {
