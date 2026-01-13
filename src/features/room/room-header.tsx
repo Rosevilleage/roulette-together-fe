@@ -59,7 +59,7 @@ export const RoomHeader: React.FC = () => {
                   💡 방장이 나가도 참가자들은 대기 상태로 유지됩니다. 30분 이내에 다시 입장할 수 있습니다.
                 </p>
               ) : (
-                '방을 나가면 다시 입장하려면 새로운 링크가 필요합니다.'
+                '방이 닫히기 전까지는 다시 접속할 수 있습니다.'
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
