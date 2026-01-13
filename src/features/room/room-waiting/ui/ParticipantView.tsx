@@ -8,11 +8,11 @@ import { Card } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
 import { Input } from '@/shared/ui/Input';
 import { Label } from '@/shared/ui/Label';
-import { CheckCircle2, Clock, Edit2, Save, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Clock, Edit2, Save } from 'lucide-react';
 
 export const ParticipantView: React.FC = () => {
   const socket = useSocket();
-  const { roomId, myNickname, myReady, config, ownerPresent } = useRoomStore();
+  const { roomId, myNickname, myReady, config } = useRoomStore();
   const [isEditingNickname, setIsEditingNickname] = useState<boolean>(false);
   const [newNickname, setNewNickname] = useState<string>(myNickname || '');
 
@@ -42,21 +42,6 @@ export const ParticipantView: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-linear-to-b from-background to-muted/20">
       <div className="w-full max-w-md flex flex-col gap-6">
-        {/* Owner Absent Warning */}
-        {!ownerPresent && (
-          <Card className="p-4 border-yellow-500 bg-yellow-500/10">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-6 h-6 text-yellow-500 shrink-0" />
-              <div>
-                <h3 className="font-semibold text-yellow-700 dark:text-yellow-400">방장 부재중</h3>
-                <p className="text-sm text-muted-foreground">
-                  방장이 나갔습니다. 방장이 돌아올 때까지 대기하거나 나갈 수 있습니다.
-                </p>
-              </div>
-            </div>
-          </Card>
-        )}
-
         {/* Header */}
         <div className="text-center">
           <Badge variant="secondary" className="mb-2">

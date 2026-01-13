@@ -23,6 +23,7 @@ import type {
   SpinResultPayload,
   SpinRejectedPayload
 } from '@/entities/room/model/websocket.types';
+import { toast } from 'sonner';
 
 /**
  * Hook to handle room-related WebSocket events
@@ -101,7 +102,9 @@ export const useRoomEvents = (socket: Socket | null): void => {
       }
 
       const message = errorMessages[payload.reason] || `방 입장이 거부되었습니다: ${payload.reason}`;
-      showAlert(message);
+      toast.error(message, {
+        duration: 3000
+      });
     };
 
     // ============================================
@@ -119,7 +122,9 @@ export const useRoomEvents = (socket: Socket | null): void => {
 
     const handleRoomConfigRejected = (payload: RoomConfigRejectedPayload): void => {
       console.error('[Room] Config rejected:', payload.reason);
-      showAlert(`설정 변경이 거부되었습니다: ${payload.reason}`);
+      toast.error(`설정 변경이 거부되었습니다: ${payload.reason}`, {
+        duration: 3000
+      });
     };
 
     // ============================================
@@ -149,7 +154,9 @@ export const useRoomEvents = (socket: Socket | null): void => {
 
     const handleNicknameChangeRejected = (payload: NicknameChangeRejectedPayload): void => {
       console.error('[Room] Nickname change rejected:', payload.reason);
-      showAlert(`닉네임 변경이 거부되었습니다: ${payload.reason}`);
+      toast.error(`닉네임 변경이 거부되었습니다: ${payload.reason}`, {
+        duration: 3000
+      });
     };
 
     // ============================================
@@ -163,7 +170,9 @@ export const useRoomEvents = (socket: Socket | null): void => {
 
     const handleReadyToggleRejected = (payload: ReadyToggleRejectedPayload): void => {
       console.error('[Room] Ready toggle rejected:', payload.reason);
-      showAlert(`준비 상태 변경이 거부되었습니다: ${payload.reason}`);
+      toast.error(`준비 상태 변경이 거부되었습니다: ${payload.reason}`, {
+        duration: 3000
+      });
     };
 
     // ============================================
@@ -200,9 +209,10 @@ export const useRoomEvents = (socket: Socket | null): void => {
 
       // Update owner presence state
       setOwnerPresent(false);
-
-      // Show notification to participants
-      showAlert('방장이 나갔습니다', '방장이 돌아올 때까지 대기하거나 나갈 수 있습니다.');
+      toast.warning('방장 부재중', {
+        description: '방장이 나갔습니다. 방장이 돌아올 때까지 대기하거나 나갈 수 있습니다.',
+        duration: 3000
+      });
     };
 
     const handleRoomClosed = (payload: RoomClosedPayload): void => {
@@ -217,7 +227,9 @@ export const useRoomEvents = (socket: Socket | null): void => {
       };
 
       // Show alert to participants
-      showAlert(messages[payload.reason] || '방이 삭제되었습니다.');
+      toast.success(messages[payload.reason] || '방이 삭제되었습니다.', {
+        duration: 3000
+      });
 
       // Navigate to home after 1 second
       setTimeout(() => {
@@ -258,7 +270,9 @@ export const useRoomEvents = (socket: Socket | null): void => {
         NO_MEMBERS: '참가자가 없습니다',
         NOT_ALL_READY: '모든 참가자가 준비 완료해야 합니다'
       };
-      showAlert(messages[payload.reason] || '룰렛 시작이 거부되었습니다');
+      toast.error(messages[payload.reason] || '룰렛 시작이 거부되었습니다', {
+        duration: 3000
+      });
     };
 
     // ============================================

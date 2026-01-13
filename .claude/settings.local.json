@@ -8,5 +8,7 @@
       "Bash(pnpm exec tsc:*)",
       "Bash(git mv:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": ["shadcn"],
+  "enableAllProjectMcpServers": true
 }
