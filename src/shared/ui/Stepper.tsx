@@ -16,6 +16,7 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   backButtonText?: string;
   nextButtonText?: string;
   disableStepIndicators?: boolean;
+  isNextDisabled?: (step: number) => boolean;
   renderStepIndicator?: (props: {
     step: number;
     currentStep: number;
@@ -37,6 +38,7 @@ export default function Stepper({
   backButtonText = 'Back',
   nextButtonText = 'Continue',
   disableStepIndicators = false,
+  isNextDisabled,
   renderStepIndicator,
   ...rest
 }: StepperProps) {
@@ -140,7 +142,8 @@ export default function Stepper({
               )}
               <button
                 onClick={isLastStep ? handleComplete : handleNext}
-                className="duration-350 flex items-center justify-center rounded-full bg-green-500 py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:bg-green-600 active:bg-green-700"
+                disabled={isNextDisabled?.(currentStep)}
+                className="duration-350 flex items-center justify-center rounded-full bg-green-500 py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:bg-green-600 active:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-green-500"
                 {...nextButtonProps}
               >
                 {isLastStep ? 'Complete' : nextButtonText}

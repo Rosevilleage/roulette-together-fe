@@ -23,17 +23,23 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
 
   const { mutate: createRoom, isPending, error } = useCreateRoomMutation();
 
+  const isNextDisabled = (step: number): boolean => {
+    if (step === 1) {
+      return !title.trim();
+    }
+    return false;
+  };
+
   const handleFinalStepCompleted = (): void => {
     const request: {
-      title?: string;
+      title: string;
       nickname?: string;
       winnersCount?: number;
       winSentiment?: WinSentiment;
-    } = {};
+    } = {
+      title: title.trim()
+    };
 
-    if (title.trim()) {
-      request.title = title.trim();
-    }
     if (nickname.trim()) {
       request.nickname = nickname.trim();
     }
@@ -64,6 +70,7 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
         backButtonText="이전"
         stepCircleContainerClassName="bg-card border-0"
         contentClassName="min-h-[200px]"
+        isNextDisabled={isNextDisabled}
       >
         <Step>
           <div className="space-y-4">
@@ -73,7 +80,9 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
             </div>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="stepper-title">방 제목 (선택사항)</Label>
+                <Label htmlFor="stepper-title">
+                  방 제목 <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="stepper-title"
                   type="text"
@@ -83,7 +92,7 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
                   maxLength={50}
                   disabled={isPending}
                 />
-                <p className="text-xs text-muted-foreground">입력하지 않으면 &quot;룰렛 방&quot;으로 설정됩니다</p>
+                <p className="text-xs text-muted-foreground">방 제목을 입력해주세요</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="stepper-nickname">닉네임 (선택사항)</Label>
@@ -165,15 +174,13 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
           <div className="space-y-4">
             <div className="space-y-2 text-center">
               <h3 className="text-lg font-semibold">방 생성 준비 완료!</h3>
-              <p className="text-sm text-muted-foreground">
-                {title.trim() ? `"${title.trim()}" 방을 생성합니다` : '"룰렛 방"을 생성합니다'}
-              </p>
+              <p className="text-sm text-muted-foreground">&quot;{title.trim()}&quot; 방을 생성합니다</p>
             </div>
 
             <div className="space-y-2 p-4 rounded-lg bg-muted/50">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">방 제목:</span>
-                <span className="font-medium">{title.trim() || '룰렛 방'}</span>
+                <span className="font-medium">{title.trim()}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">닉네임:</span>
