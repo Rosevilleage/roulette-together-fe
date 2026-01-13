@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useRoomsQuery } from '@/entities/room/api/room.queries';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
-import { UsersIcon, TrophyIcon, Clock } from 'lucide-react';
+import { TrophyIcon, Clock } from 'lucide-react';
 
 const formatLastActivity = (timestamp: number, now: number): string => {
   const diff = now - timestamp;
@@ -76,10 +76,6 @@ export const RoomList: React.FC = () => {
                   <span className="text-xs text-muted-foreground">#{room.roomId.slice(-6)}</span>
                 </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <UsersIcon className="w-3.5 h-3.5" />
-                    <span>{room.participantCount}명</span>
-                  </div>
                   <div className="flex items-center gap-1">
                     <TrophyIcon className="w-3.5 h-3.5" />
                     <span>
