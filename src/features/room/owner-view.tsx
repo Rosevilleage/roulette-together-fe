@@ -6,7 +6,7 @@ import { useSocket } from '@/shared/hooks/use-socket';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
-import { ShareIcon, CheckCircle2, Clock, Users } from 'lucide-react';
+import { ShareIcon, CheckCircle2, Clock, Users, Copy, Check } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 export const OwnerView: React.FC = () => {
@@ -14,9 +14,24 @@ export const OwnerView: React.FC = () => {
   const { roomId, myNickname, config, participants, readyCount, allReady } = useRoomStore();
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [isSharing, setIsSharing] = useState<boolean>(false);
+  const [isCopied, setIsCopied] = useState<boolean>(false);
 
   const participantUrl =
     typeof window !== 'undefined' ? `${window.location.origin}/room/${roomId}?role=participant` : '';
+
+  const handleCopyLink = async (): Promise<void> => {
+    if (isCopied) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(participantUrl);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error('Copy failed:', err);
+    }
+  };
 
   const handleShareLink = async (): Promise<void> => {
     if (isSharing) {
@@ -33,8 +48,7 @@ export const OwnerView: React.FC = () => {
           url: participantUrl
         });
       } else {
-        await navigator.clipboard.writeText(participantUrl);
-        alert('링크가 클립보드에 복사되었습니다!');
+        await handleCopyLink();
       }
     } catch (err) {
       console.error('Share failed:', err);
@@ -137,16 +151,28 @@ export const OwnerView: React.FC = () => {
             {isSpinning ? '룰렛 돌리는 중...' : allReady ? '🎯 룰렛 돌리기' : '모든 참가자가 준비해야 합니다'}
           </Button>
 
-          <Button
-            size="lg"
-            variant="outline"
-            onClick={handleShareLink}
-            disabled={isSharing}
-            className="w-full h-12 gap-2"
-          >
-            <ShareIcon className="w-5 h-5" />
-            {isSharing ? '공유 중...' : '참가자 링크 공유'}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={handleCopyLink}
+              disabled={isCopied}
+              className="flex-1 h-12 gap-2"
+            >
+              {isCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+              {isCopied ? '복사됨!' : '링크 복사'}
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={handleShareLink}
+              disabled={isSharing}
+              className="flex-1 h-12 gap-2"
+            >
+              <ShareIcon className="w-5 h-5" />
+              {isSharing ? '공유 중...' : '공유하기'}
+            </Button>
+          </div>
         </div>
 
         {/* Info */}

@@ -103,6 +103,11 @@ export interface NicknameChangeRejectedPayload {
   reason: 'INVALID_NICKNAME';
 }
 
+export interface ReadyToggledPayload {
+  roomId: string;
+  ready: boolean;
+}
+
 export interface ReadyToggleRejectedPayload {
   roomId: string;
   reason: 'ONLY_PARTICIPANTS_CAN_READY';
@@ -186,6 +191,7 @@ export const SOCKET_EVENTS = {
   ROOM_PARTICIPANTS: 'room:participants',
   NICKNAME_CHANGED: 'nickname:changed',
   NICKNAME_CHANGE_REJECTED: 'nickname:change:rejected',
+  READY_TOGGLED: 'ready:toggled',
   READY_TOGGLE_REJECTED: 'ready:toggle:rejected',
   ROOM_LEFT: 'room:left',
   ROOM_LEAVE_REJECTED: 'room:leave:rejected',

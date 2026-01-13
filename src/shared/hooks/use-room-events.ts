@@ -11,6 +11,7 @@ import type {
   RoomParticipantsPayload,
   NicknameChangedPayload,
   NicknameChangeRejectedPayload,
+  ReadyToggledPayload,
   ReadyToggleRejectedPayload,
   RoomLeftPayload,
   RoomLeaveRejectedPayload,
@@ -152,6 +153,11 @@ export const useRoomEvents = (socket: Socket | null): void => {
     // Ready Events
     // ============================================
 
+    const handleReadyToggled = (payload: ReadyToggledPayload): void => {
+      console.log('[Room] Ready toggled:', payload);
+      setMyReady(payload.ready);
+    };
+
     const handleReadyToggleRejected = (payload: ReadyToggleRejectedPayload): void => {
       console.error('[Room] Ready toggle rejected:', payload.reason);
       alert(`준비 상태 변경이 거부되었습니다: ${payload.reason}`);
@@ -263,6 +269,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     socket.on(SOCKET_EVENTS.ROOM_PARTICIPANTS, handleRoomParticipants);
     socket.on(SOCKET_EVENTS.NICKNAME_CHANGED, handleNicknameChanged);
     socket.on(SOCKET_EVENTS.NICKNAME_CHANGE_REJECTED, handleNicknameChangeRejected);
+    socket.on(SOCKET_EVENTS.READY_TOGGLED, handleReadyToggled);
     socket.on(SOCKET_EVENTS.READY_TOGGLE_REJECTED, handleReadyToggleRejected);
     socket.on(SOCKET_EVENTS.ROOM_LEFT, handleRoomLeft);
     socket.on(SOCKET_EVENTS.ROOM_LEAVE_REJECTED, handleRoomLeaveRejected);
@@ -285,6 +292,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
       socket.off(SOCKET_EVENTS.ROOM_PARTICIPANTS, handleRoomParticipants);
       socket.off(SOCKET_EVENTS.NICKNAME_CHANGED, handleNicknameChanged);
       socket.off(SOCKET_EVENTS.NICKNAME_CHANGE_REJECTED, handleNicknameChangeRejected);
+      socket.off(SOCKET_EVENTS.READY_TOGGLED, handleReadyToggled);
       socket.off(SOCKET_EVENTS.READY_TOGGLE_REJECTED, handleReadyToggleRejected);
       socket.off(SOCKET_EVENTS.ROOM_LEFT, handleRoomLeft);
       socket.off(SOCKET_EVENTS.ROOM_LEAVE_REJECTED, handleRoomLeaveRejected);
