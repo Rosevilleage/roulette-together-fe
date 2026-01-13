@@ -9,21 +9,32 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogFooter,
-  AlertDialogAction
+  AlertDialogAction,
+  AlertDialogCancel
 } from '@/shared/ui/alert-dialog';
 
 export function GlobalAlertDialog(): ReactElement {
-  const { isOpen, title, description, closeAlert } = useAlertStore();
+  const { isOpen, type, title, description, confirmText, cancelText, closeAlert, handleConfirm, handleCancel } =
+    useAlertStore();
+
+  const isConfirm = type === 'confirm';
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={open => !open && closeAlert()}>
+    <AlertDialog open={isOpen} onOpenChange={open => !open && (isConfirm ? handleCancel() : closeAlert())}>
       <AlertDialogContent size="sm">
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           {description && <AlertDialogDescription>{description}</AlertDialogDescription>}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogAction onClick={closeAlert}>확인</AlertDialogAction>
+          {isConfirm ? (
+            <>
+              <AlertDialogCancel onClick={handleCancel}>{cancelText}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleConfirm}>{confirmText}</AlertDialogAction>
+            </>
+          ) : (
+            <AlertDialogAction onClick={closeAlert}>{confirmText}</AlertDialogAction>
+          )}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
