@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
+import { useAlertStore } from '@/shared/store/alert.store';
 import { ArrowLeftIcon, QrCodeIcon, ClockIcon, TrashIcon } from 'lucide-react';
 import {
   getVisitedRooms,
@@ -22,6 +23,7 @@ const getInitialVisitedRooms = (): VisitedRoomInfo[] => {
 
 export default function JoinPage(): ReactElement {
   const router = useRouter();
+  const showAlert = useAlertStore(state => state.showAlert);
   const [roomUrl, setRoomUrl] = useState<string>('');
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [visitedRooms, setVisitedRooms] = useState<VisitedRoomInfo[]>(getInitialVisitedRooms);
@@ -36,18 +38,18 @@ export default function JoinPage(): ReactElement {
       if (pathname.startsWith('/room/')) {
         router.push(`${pathname}${url.search || '?role=participant'}`);
       } else {
-        alert('올바른 방 링크가 아닙니다.');
+        showAlert('올바른 방 링크가 아닙니다.');
       }
     } catch {
-      alert('올바른 URL 형식이 아닙니다.');
+      showAlert('올바른 URL 형식이 아닙니다.');
     }
-  }, [roomUrl, router]);
+  }, [roomUrl, router, showAlert]);
 
   const handleQrScan = (): void => {
     setIsScanning(true);
     // QR 스캔 기능은 추후 구현
     // 카메라 권한 요청 및 QR 코드 스캔
-    alert('QR 코드 스캔 기능은 개발 중입니다.');
+    showAlert('QR 코드 스캔 기능은 개발 중입니다.');
     setIsScanning(false);
   };
 

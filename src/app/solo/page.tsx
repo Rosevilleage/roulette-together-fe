@@ -6,11 +6,13 @@ import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Badge } from '@/shared/ui/badge';
 import { useSoloRoulette } from '@/shared/hooks/use-solo-roulette';
+import { useAlertStore } from '@/shared/store/alert.store';
 import { ArrowLeftIcon, PlusIcon, XIcon } from 'lucide-react';
 import PixelCard from '@/shared/ui/PixelCard';
 
 export default function SoloPage(): ReactElement {
   const router = useRouter();
+  const showAlert = useAlertStore(state => state.showAlert);
   const { candidates, history, addCandidate, removeCandidate, spin, clearCandidates, clearHistory } = useSoloRoulette();
 
   const [newCandidateName, setNewCandidateName] = useState<string>('');
@@ -35,7 +37,7 @@ export default function SoloPage(): ReactElement {
 
   const handleSpin = async (): Promise<void> => {
     if (candidates.length === 0) {
-      alert('후보를 최소 1개 이상 추가해주세요!');
+      showAlert('후보를 최소 1개 이상 추가해주세요!');
       return;
     }
 

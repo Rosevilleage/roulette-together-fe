@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import type { Socket } from 'socket.io-client';
 import { useRoomStore } from '@/shared/store/room.store';
+import { showAlert } from '@/shared/store/alert.store';
 import { removeOwnedRoom, saveVisitedRoom, removeVisitedRoom } from '@/shared/lib/room-storage';
 import { SOCKET_EVENTS } from '@/shared/types/websocket.types';
 import type {
@@ -98,7 +99,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
       }
 
       const message = errorMessages[payload.reason] || `방 입장이 거부되었습니다: ${payload.reason}`;
-      alert(message);
+      showAlert(message);
     };
 
     // ============================================
@@ -116,7 +117,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
 
     const handleRoomConfigRejected = (payload: RoomConfigRejectedPayload): void => {
       console.error('[Room] Config rejected:', payload.reason);
-      alert(`설정 변경이 거부되었습니다: ${payload.reason}`);
+      showAlert(`설정 변경이 거부되었습니다: ${payload.reason}`);
     };
 
     // ============================================
@@ -146,7 +147,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
 
     const handleNicknameChangeRejected = (payload: NicknameChangeRejectedPayload): void => {
       console.error('[Room] Nickname change rejected:', payload.reason);
-      alert(`닉네임 변경이 거부되었습니다: ${payload.reason}`);
+      showAlert(`닉네임 변경이 거부되었습니다: ${payload.reason}`);
     };
 
     // ============================================
@@ -160,7 +161,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
 
     const handleReadyToggleRejected = (payload: ReadyToggleRejectedPayload): void => {
       console.error('[Room] Ready toggle rejected:', payload.reason);
-      alert(`준비 상태 변경이 거부되었습니다: ${payload.reason}`);
+      showAlert(`준비 상태 변경이 거부되었습니다: ${payload.reason}`);
     };
 
     // ============================================
@@ -189,7 +190,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
         NOT_IN_ROOM: '방에 입장하지 않았습니다',
         INTERNAL_ERROR: '서버 오류가 발생했습니다'
       };
-      alert(`방 나가기가 거부되었습니다: ${messages[payload.reason] || payload.reason}`);
+      showAlert(`방 나가기가 거부되었습니다: ${messages[payload.reason] || payload.reason}`);
     };
 
     const handleRoomOwnerLeft = (payload: RoomOwnerLeftPayload): void => {
@@ -199,7 +200,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
       setOwnerPresent(false);
 
       // Show notification to participants
-      alert('방장이 나갔습니다. 방장이 돌아올 때까지 대기하거나 나갈 수 있습니다.');
+      showAlert('방장이 나갔습니다', '방장이 돌아올 때까지 대기하거나 나갈 수 있습니다.');
     };
 
     const handleRoomClosed = (payload: RoomClosedPayload): void => {
@@ -214,7 +215,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
       };
 
       // Show alert to participants
-      alert(messages[payload.reason] || '방이 삭제되었습니다.');
+      showAlert(messages[payload.reason] || '방이 삭제되었습니다.');
 
       // Navigate to home after 1 second
       setTimeout(() => {
@@ -255,7 +256,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
         NO_MEMBERS: '참가자가 없습니다',
         NOT_ALL_READY: '모든 참가자가 준비 완료해야 합니다'
       };
-      alert(messages[payload.reason] || '룰렛 시작이 거부되었습니다');
+      showAlert(messages[payload.reason] || '룰렛 시작이 거부되었습니다');
     };
 
     // ============================================
