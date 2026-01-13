@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Stepper, { Step } from '@/shared/ui/Stepper';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Button } from '@/shared/ui/button';
-import { createRoom } from '@/shared/api/room.api';
+import { useCreateRoomMutation } from '@/shared/api/room.queries';
 import type { WinSentiment } from '@/shared/types/room.types';
 
 interface CreateRoomStepperProps {
@@ -19,54 +19,48 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
   const [nickname, setNickname] = useState<string>('');
   const [winnersCount, setWinnersCount] = useState<number>(1);
   const [winSentiment, setWinSentiment] = useState<WinSentiment>('POSITIVE');
-  const [isCreating, setIsCreating] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const handleFinalStepCompleted = useCallback(async (): Promise<void> => {
-    try {
-      setIsCreating(true);
-      setError(null);
+  const { mutate: createRoom, isPending, error } = useCreateRoomMutation();
 
-      const request: {
-        title?: string;
-        nickname?: string;
-        winnersCount?: number;
-        winSentiment?: WinSentiment;
-      } = {};
+  const handleFinalStepCompleted = (): void => {
+    const request: {
+      title?: string;
+      nickname?: string;
+      winnersCount?: number;
+      winSentiment?: WinSentiment;
+    } = {};
 
-      if (title.trim()) {
-        request.title = title.trim();
-      }
-      if (nickname.trim()) {
-        request.nickname = nickname.trim();
-      }
-      if (winnersCount > 0) {
-        request.winnersCount = winnersCount;
-      }
-      if (winSentiment) {
-        request.winSentiment = winSentiment;
-      }
-
-      const response = await createRoom(request);
-
-      // Extract token from ownerUrl (format: /room/:roomId?role=owner&token=xxx)
-      const url = new URL(response.ownerUrl, window.location.origin);
-      const token = url.searchParams.get('token');
-
-      // Navigate to room with owner role and token
-      if (token) {
-        router.push(`/room/${response.roomId}?role=owner&token=${token}`);
-      } else {
-        // Fallback: use the full ownerUrl
-        router.push(response.ownerUrl);
-      }
-
-      onComplete?.();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '방 생성에 실패했습니다.');
-      setIsCreating(false);
+    if (title.trim()) {
+      request.title = title.trim();
     }
-  }, [title, nickname, winnersCount, winSentiment, router, onComplete]);
+    if (nickname.trim()) {
+      request.nickname = nickname.trim();
+    }
+    if (winnersCount > 0) {
+      request.winnersCount = winnersCount;
+    }
+    if (winSentiment) {
+      request.winSentiment = winSentiment;
+    }
+
+    createRoom(request, {
+      onSuccess: response => {
+        // Extract token from ownerUrl (format: /room/:roomId?role=owner&token=xxx)
+        const url = new URL(response.ownerUrl, window.location.origin);
+        const token = url.searchParams.get('token');
+
+        // Navigate to room with owner role and token
+        if (token) {
+          router.push(`/room/${response.roomId}?role=owner&token=${token}`);
+        } else {
+          // Fallback: use the full ownerUrl
+          router.push(response.ownerUrl);
+        }
+
+        onComplete?.();
+      }
+    });
+  };
 
   return (
     <div className="w-full">
@@ -94,7 +88,7 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   maxLength={50}
-                  disabled={isCreating}
+                  disabled={isPending}
                 />
                 <p className="text-xs text-muted-foreground">입력하지 않으면 &quot;룰렛 방&quot;으로 설정됩니다</p>
               </div>
@@ -107,7 +101,7 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
                   value={nickname}
                   onChange={e => setNickname(e.target.value)}
                   maxLength={20}
-                  disabled={isCreating}
+                  disabled={isPending}
                 />
                 <p className="text-xs text-muted-foreground">입력하지 않으면 자동으로 닉네임이 생성됩니다</p>
               </div>
@@ -139,7 +133,7 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
                       setWinnersCount(1);
                     }
                   }}
-                  disabled={isCreating}
+                  disabled={isPending}
                 />
                 <p className="text-xs text-muted-foreground">뽑을 당첨자의 수를 입력해주세요 (1-100명)</p>
               </div>
@@ -152,7 +146,7 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
                     variant={winSentiment === 'POSITIVE' ? 'default' : 'outline'}
                     className="w-full justify-start"
                     onClick={() => setWinSentiment('POSITIVE')}
-                    disabled={isCreating}
+                    disabled={isPending}
                   >
                     <span className="mr-2">🎁</span>
                     긍정적 (선물 추첨, 청소 면제 등)
@@ -162,7 +156,7 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
                     variant={winSentiment === 'NEGATIVE' ? 'default' : 'outline'}
                     className="w-full justify-start"
                     onClick={() => setWinSentiment('NEGATIVE')}
-                    disabled={isCreating}
+                    disabled={isPending}
                   >
                     <span className="mr-2">😅</span>
                     부정적 (설거지, 돈내기 등)
@@ -204,7 +198,7 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
 
             {error && (
               <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                <p className="text-sm text-destructive text-center">{error}</p>
+                <p className="text-sm text-destructive text-center">방 생성에 실패했습니다. 다시 시도해주세요.</p>
               </div>
             )}
 
@@ -223,7 +217,7 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
               </div>
             </div>
 
-            {isCreating && <p className="text-center text-sm text-muted-foreground">방을 생성하는 중...</p>}
+            {isPending && <p className="text-center text-sm text-muted-foreground">방을 생성하는 중...</p>}
           </div>
         </Step>
       </Stepper>

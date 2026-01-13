@@ -1,49 +1,29 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getRooms } from '@/shared/api/room.api';
-import type { RoomListItem } from '@/shared/types/room.types';
+import { useRoomsQuery } from '@/shared/api/room.queries';
 import { Card } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { UsersIcon, TrophyIcon, Clock } from 'lucide-react';
 
+const formatLastActivity = (timestamp: number, now: number): string => {
+  const diff = now - timestamp;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+
+  if (minutes < 1) return '방금 전';
+  if (minutes < 60) return `${minutes}분 전`;
+  if (hours < 24) return `${hours}시간 전`;
+  return `${days}일 전`;
+};
+
 export const RoomList: React.FC = () => {
   const router = useRouter();
-  const [rooms, setRooms] = useState<RoomListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, isLoading, error, dataUpdatedAt } = useRoomsQuery();
 
-  useEffect(() => {
-    const fetchRooms = async (): Promise<void> => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await getRooms();
-        setRooms(response.rooms);
-      } catch (err) {
-        console.error('Failed to fetch rooms:', err);
-        setError('방 목록을 불러오는데 실패했습니다');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void fetchRooms();
-  }, []);
-
-  const formatLastActivity = (timestamp: number): string => {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (minutes < 1) return '방금 전';
-    if (minutes < 60) return `${minutes}분 전`;
-    if (hours < 24) return `${hours}시간 전`;
-    return `${days}일 전`;
-  };
+  // dataUpdatedAt은 쿼리가 업데이트될 때마다 변경되므로 안정적인 값
+  const now = dataUpdatedAt;
 
   const handleRoomClick = (roomId: string): void => {
     router.push(`/room/${roomId}?role=owner`);
@@ -62,13 +42,15 @@ export const RoomList: React.FC = () => {
     return (
       <div className="w-full">
         <h2 className="text-lg font-semibold mb-3 text-muted-foreground">내가 만든 방</h2>
-        <div className="text-sm text-destructive">{error}</div>
+        <div className="text-sm text-destructive">방 목록을 불러오는데 실패했습니다</div>
       </div>
     );
   }
 
+  const rooms = data?.rooms ?? [];
+
   if (rooms.length === 0) {
-    return null; // 방이 없으면 표시하지 않음
+    return null;
   }
 
   return (
@@ -106,7 +88,7 @@ export const RoomList: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" />
-                    <span>{formatLastActivity(room.lastActivity)}</span>
+                    <span>{formatLastActivity(room.lastActivity, now)}</span>
                   </div>
                 </div>
               </div>

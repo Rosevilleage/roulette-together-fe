@@ -1,5 +1,5 @@
 {
   "permissions": {
-    "allow": ["Bash(pnpm lint:*)", "Bash(pnpm lint:fix:*)", "Bash(pnpm build:*)"]
+    "allow": ["Bash(pnpm lint:*)", "Bash(pnpm lint:fix:*)", "Bash(pnpm build:*)", "Bash(pnpm add:*)"]
   }
 }
