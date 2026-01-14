@@ -99,22 +99,6 @@ export const MainMenu: React.FC = () => {
             혼자 룰렛 돌리기
           </Button>
         </div>
-
-        {/* Info Section */}
-        <div className="flex flex-wrap justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <span className="text-primary">✓</span>
-            <span>실시간 동기화</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-primary">✓</span>
-            <span>쉬운 링크 공유</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-primary">✓</span>
-            <span>무료 사용</span>
-          </div>
-        </div>
       </div>
     </div>
   );
