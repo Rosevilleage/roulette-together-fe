@@ -6,14 +6,13 @@ import { useSocket } from '@/shared/hooks/useSocket';
 import { Badge } from '@/shared/ui/Badge';
 import PixelCard from '@/shared/ui/PixelCard';
 import { useParticipantCardAnimation } from '@/features/room/room-waiting/hooks/useParticipantCardAnimation';
-import { RoomConfigCard } from '@/features/room/room-waiting/ui/RoomConfigCard';
 import { ParticipantCardContent } from '@/features/room/room-waiting/ui/participant/ParticipantCardContent';
 import { NicknameEditor } from '@/features/room/room-waiting/ui/participant/NicknameEditor';
 import { AnimationOverlay } from '@/features/room/room-waiting/ui/participant/AnimationOverlay';
 
 export const ParticipantView: React.FC = () => {
   const socket = useSocket();
-  const { roomId, myNickname, myReady, config, roomTitle, spin } = useRoomStore();
+  const { roomId, myNickname, myReady, roomTitle, spin } = useRoomStore();
 
   const {
     phase,
@@ -87,9 +86,6 @@ export const ParticipantView: React.FC = () => {
 
           {/* Nickname Editor */}
           {myNickname && <NicknameEditor nickname={myNickname} onSave={handleSaveNickname} />}
-
-          {/* Room Config */}
-          {config && <RoomConfigCard config={config} />}
 
           {/* Ready Card (PixelCard) */}
           <div className="flex justify-center items-center" style={{ perspective: '1000px' }}>

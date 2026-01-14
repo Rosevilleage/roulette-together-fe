@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const OwnerView: React.FC = () => {
   const socket = useSocket();
-  const { roomId, myNickname, config, participants, readyCount, allReady } = useRoomStore();
+  const { roomId, myNickname, participants, readyCount, allReady } = useRoomStore();
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [isSharing, setIsSharing] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
@@ -83,23 +83,6 @@ export const OwnerView: React.FC = () => {
           <h1 className="text-3xl font-bold mb-2">{myNickname}님의 룰렛 방</h1>
           <p className="text-muted-foreground">참가자들이 모두 준비될 때까지 기다려주세요</p>
         </div>
-
-        {/* Room Config */}
-        {config && (
-          <Card className="p-4">
-            <h3 className="font-semibold mb-3">룰렛 설정</h3>
-            <div className="flex flex-col gap-2 text-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">당첨자 수:</span>
-                <span className="font-medium">{config.winnersCount}명</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">당첨 감정:</span>
-                <span className="font-medium">{config.winSentiment === 'POSITIVE' ? '🎁 긍정적' : '😅 부정적'}</span>
-              </div>
-            </div>
-          </Card>
-        )}
 
         {/* Participants List */}
         <Card className="p-4">
