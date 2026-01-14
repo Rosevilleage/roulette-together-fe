@@ -20,9 +20,9 @@ export const RoomWaiting: React.FC = () => {
   }
 
   return (
-    <>
+    <div className="relative min-h-dvh w-full">
       <RoomHeader />
       <div>{isOwner ? <OwnerView /> : <ParticipantView />}</div>
-    </>
+    </div>
   );
 };

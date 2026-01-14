@@ -29,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className={notoSans.variable}>
-      <body className={cn(geistSans.variable, geistMono.variable, 'antialiased h-dvh w-dvw')}>
+      <body className={cn(geistSans.variable, geistMono.variable, 'antialiased h-dvh')}>
         <Providers>
           {children}
           <Toaster richColors position="top-center" />
