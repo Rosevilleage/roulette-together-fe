@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { Badge } from '@/shared/ui/Badge';
-import { useSoloRoulette } from '@/shared/hooks/use-solo-roulette';
+import { useSoloRoulette } from '@/features/solo/hooks/useSoloRoulette';
 import { useAlertStore } from '@/shared/store/alert.store';
 import { ArrowLeftIcon, PlusIcon, XIcon } from 'lucide-react';
 import PixelCard from '@/shared/ui/PixelCard';

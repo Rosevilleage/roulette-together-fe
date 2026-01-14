@@ -10,7 +10,7 @@ import { RoomList } from '@/features/room/create-room/ui/RoomList';
 import { PlusIcon, QrCodeIcon, DicesIcon } from 'lucide-react';
 import Shuffle from '@/shared/ui/Shuffle';
 
-export const MainMenu: React.FC = () => {
+export const HomePage: React.FC = () => {
   const router = useRouter();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 

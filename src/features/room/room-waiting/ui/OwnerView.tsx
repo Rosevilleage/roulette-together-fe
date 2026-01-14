@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRoomStore } from '@/entities/room/model/room.store';
-import { useSocket } from '@/shared/hooks/use-socket';
+import { useSocket } from '@/shared/hooks/useSocket';
 import { Button } from '@/shared/ui/Button';
 import { Card } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';

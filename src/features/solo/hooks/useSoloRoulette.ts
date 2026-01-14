@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { SoloCandidate, SoloRouletteData } from '@/shared/types/solo-roulette.types';
+import type { SoloCandidate, SoloRouletteData } from '../model/solo-roulette.types';
 
 const STORAGE_KEY = 'solo-roulette-data';
 

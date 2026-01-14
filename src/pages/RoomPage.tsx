@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useSocket } from '@/shared/hooks/use-socket';
+import { useSocket } from '@/shared/hooks/useSocket';
 import { useRoomStore } from '@/entities/room/model/room.store';
-import { useRoomEvents } from '@/features/room/room-events/useRoomEvents';
+import { useRoomEvents } from '@/entities/room/hooks/useRoomEvents';
 import { RoomWaiting } from '@/features/room/room-waiting/ui/RoomWaiting';
 import { NicknameInputDialog } from '@/features/room/join-room/ui/NicknameInputDialog';
-import { getVisitedRoom } from '@/entities/room/lib/room-storage';
+import { getVisitedRoom } from '@/entities/room/lib/room_storage';
 import { showConfirm, showAlert } from '@/shared/store/alert.store';
 import type { Role } from '@/entities/room/model/room.types';
 import { SOCKET_EVENTS } from '@/entities/room/model/websocket.types';

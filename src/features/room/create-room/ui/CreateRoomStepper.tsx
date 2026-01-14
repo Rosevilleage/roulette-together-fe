@@ -7,7 +7,7 @@ import { Input } from '@/shared/ui/Input';
 import { Label } from '@/shared/ui/Label';
 import { Button } from '@/shared/ui/Button';
 import { useCreateRoomMutation } from '@/entities/room/api/room.queries';
-import { saveOwnedRoom } from '@/entities/room/lib/room-storage';
+import { saveOwnedRoom } from '@/entities/room/lib/room_storage';
 import type { WinSentiment } from '@/entities/room/model/room.types';
 
 interface CreateRoomStepperProps {

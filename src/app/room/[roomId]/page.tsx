@@ -1,9 +1,9 @@
 'use client';
 
 import { useParams, useSearchParams } from 'next/navigation';
-import { RoomPage } from '@/widgets/RoomPage';
+import { RoomPage } from '@/pages/RoomPage';
 import { ReactElement, useMemo } from 'react';
-import { isOwnedRoom } from '@/entities/room/lib/room-storage';
+import { isOwnedRoom } from '@/entities/room/lib/room_storage';
 import type { Role } from '@/entities/room/model/room.types';
 
 export default function Page(): ReactElement {

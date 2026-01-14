@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useSocket } from '@/shared/hooks/use-socket';
+import { useSocket } from '@/shared/hooks/useSocket';
 import { useRoomStore } from '@/entities/room/model/room.store';
 import { Button } from '@/shared/ui/Button';
 import {

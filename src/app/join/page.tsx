@@ -12,7 +12,7 @@ import {
   removeVisitedRoom,
   cleanupOldVisitedRooms,
   type VisitedRoomInfo
-} from '@/entities/room/lib/room-storage';
+} from '@/entities/room/lib/room_storage';
 
 // 초기 방문 기록 불러오기 (컴포넌트 외부에서 실행)
 const getInitialVisitedRooms = (): VisitedRoomInfo[] => {

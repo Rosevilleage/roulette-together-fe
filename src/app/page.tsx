@@ -1,5 +1,5 @@
-import { MainMenu } from '@/widgets/MainMenu';
+import { HomePage } from '@/pages/HomePage';
 
 export default function Page() {
-  return <MainMenu />;
+  return <HomePage />;
 }

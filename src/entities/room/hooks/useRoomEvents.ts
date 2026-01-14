@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import type { Socket } from 'socket.io-client';
 import { useRoomStore } from '@/entities/room/model/room.store';
 import { showAlert } from '@/shared/store/alert.store';
-import { removeOwnedRoom, saveVisitedRoom, removeVisitedRoom } from '@/entities/room/lib/room-storage';
+import { removeOwnedRoom, saveVisitedRoom, removeVisitedRoom } from '@/entities/room/lib/room_storage';
 import { SOCKET_EVENTS } from '@/entities/room/model/websocket.types';
 import type {
   RoomJoinedPayload,

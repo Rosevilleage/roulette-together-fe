@@ -49,17 +49,25 @@ NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
 
 The codebase follows Feature-Sliced Design methodology:
 
-- **`src/app/`** - Next.js App Router pages and routing
-- **`src/widgets/`** - Page-level composite components (e.g., `room-page.tsx`, `main-menu.tsx`)
+- **`src/app/`** - Next.js App Router (routing only, renders page components)
+- **`src/pages/`** - Page-level components that compose widgets/features (e.g., `HomePage.tsx`, `RoomPage.tsx`)
+- **`src/widgets/`** - Reusable independent UI blocks (e.g., `MainHero.tsx`)
 - **`src/features/`** - Feature-specific components (e.g., room creation, nickname dialogs)
 - **`src/entities/`** - Domain models and business entities
+  - `room/` - Room domain with api, lib, model, hooks
 - **`src/shared/`** - Shared resources across layers
   - `api/` - API client functions
   - `hooks/` - Reusable React hooks
-  - `store/` - Zustand state management
+  - `store/` - Zustand state management (global stores like `alert.store.ts`)
   - `types/` - TypeScript type definitions
   - `ui/` - UI components (shadcn/ui based)
   - `lib/` - Utility functions
+
+**FSD Layer Dependencies:**
+
+```
+app → pages → widgets → features → entities → shared
+```
 
 ### Path Aliases
 
@@ -67,6 +75,7 @@ Configured in `tsconfig.json`:
 
 - `@/*` - `./src/*`
 - `@/app/*` - `./src/app/*`
+- `@/pages/*` - `./src/pages/*`
 - `@/widgets/*` - `./src/widgets/*`
 - `@/features/*` - `./src/features/*`
 - `@/entities/*` - `./src/entities/*`
@@ -76,23 +85,23 @@ Configured in `tsconfig.json`:
 
 **WebSocket Pattern:**
 
-1. **Connection Management**: `useSocket` hook (in [src/shared/hooks/use-socket.ts](src/shared/hooks/use-socket.ts))
+1. **Connection Management**: `useSocket` hook (in [src/shared/hooks/useSocket.ts](src/shared/hooks/useSocket.ts))
    - Single Socket.IO connection per client
    - Auto-reconnection with 5 attempts
    - WebSocket-only transport (no polling fallback)
    - Connection lifecycle logging
 
-2. **Event Handling**: `useRoomEvents` hook (in [src/shared/hooks/use-room-events.ts](src/shared/hooks/use-room-events.ts))
+2. **Event Handling**: `useRoomEvents` hook (in [src/entities/room/hooks/useRoomEvents.ts](src/entities/room/hooks/useRoomEvents.ts))
    - Centralized WebSocket event listener registration
    - Automatic cleanup on unmount
    - Direct integration with Zustand store
 
-3. **State Management**: Zustand store (in [src/shared/store/room.store.ts](src/shared/store/room.store.ts))
+3. **State Management**: Zustand store (in [src/entities/room/model/room.store.ts](src/entities/room/model/room.store.ts))
    - Single source of truth for room state
    - Separated concerns: room info, config, participants, spin state
    - Owner vs Participant role distinction
 
-4. **Event Types**: Defined in [src/shared/types/websocket.types.ts](src/shared/types/websocket.types.ts)
+4. **Event Types**: Defined in [src/entities/room/model/websocket.types.ts](src/entities/room/model/websocket.types.ts)
    - Client → Server events: `ROOM_JOIN`, `ROOM_CONFIG_SET`, `SPIN_REQUEST`, etc.
    - Server → Client events: `ROOM_JOINED`, `ROOM_PARTICIPANTS`, `SPIN_RESOLVED`, etc.
    - All payloads are strongly typed
@@ -200,13 +209,13 @@ User Action → Socket Emit → Server Processing → Socket Event → useRoomEv
 ### Solo Mode
 
 - Uses `sessionStorage` for persistence (not server-connected)
-- Managed by `use-solo-roulette` hook
+- Managed by `useSoloRoulette` hook (in [src/features/solo/hooks/useSoloRoulette.ts](src/features/solo/hooks/useSoloRoulette.ts))
 - Independent from multiplayer room functionality
 
 ### Adding New WebSocket Events
 
-1. Define event payload types in [src/shared/types/websocket.types.ts](src/shared/types/websocket.types.ts)
+1. Define event payload types in [src/entities/room/model/websocket.types.ts](src/entities/room/model/websocket.types.ts)
 2. Add event name constant to `SOCKET_EVENTS`
-3. Add handler in [src/shared/hooks/use-room-events.ts](src/shared/hooks/use-room-events.ts)
-4. Update Zustand store if needed ([src/shared/store/room.store.ts](src/shared/store/room.store.ts))
+3. Add handler in [src/entities/room/hooks/useRoomEvents.ts](src/entities/room/hooks/useRoomEvents.ts)
+4. Update Zustand store if needed ([src/entities/room/model/room.store.ts](src/entities/room/model/room.store.ts))
 5. Emit from components using `socket.emit(SOCKET_EVENTS.EVENT_NAME, payload)`
