@@ -5,16 +5,9 @@ import type { AnimationPhase } from '@/features/room/room-waiting/hooks/useParti
 interface ParticipantCardContentProps {
   phase: AnimationPhase;
   outcome: 'WIN' | 'LOSE' | null | undefined;
-  isBackdropDismissed: boolean;
-  myReady: boolean;
 }
 
-export const ParticipantCardContent: React.FC<ParticipantCardContentProps> = ({
-  phase,
-  outcome,
-  isBackdropDismissed,
-  myReady
-}) => {
+export const ParticipantCardContent: React.FC<ParticipantCardContentProps> = ({ phase, outcome }) => {
   // idle 상태
   if (phase === 'idle') {
     return (
@@ -65,27 +58,7 @@ export const ParticipantCardContent: React.FC<ParticipantCardContentProps> = ({
     );
   }
 
-  // landed 상태 - backdrop이 dismiss되면 myReady에 따라 idle/ready UI 표시
-  if (phase === 'landed' && isBackdropDismissed) {
-    if (myReady) {
-      return (
-        <div className="text-center space-y-2">
-          <span className="text-5xl">✅</span>
-          <p className="text-lg font-semibold text-foreground">준비 완료!</p>
-          <p className="absolute bottom-8 left-0 right-0 text-xs text-foreground/50">취소하려면 클릭</p>
-        </div>
-      );
-    }
-    return (
-      <div className="text-center space-y-2">
-        <span className="text-5xl">⏳</span>
-        <p className="text-lg font-semibold text-foreground">준비하기</p>
-        <p className="absolute bottom-8 left-0 right-0 text-xs text-foreground/50">카드를 클릭하세요</p>
-      </div>
-    );
-  }
-
-  // landed 상태 - backdrop이 아직 dismiss 안 됨 (결과 표시)
+  // landed 상태 (결과 표시)
   if (outcome === 'WIN') {
     return (
       <div className="text-center space-y-2">

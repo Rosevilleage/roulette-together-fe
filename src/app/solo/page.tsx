@@ -200,7 +200,7 @@ export default function SoloPage(): ReactElement {
                 </div>
               )}
 
-              <PixelCard variant="blue" className="w-full bg-card" hasAnswer={!!winner} isSpinning={isSpinning}>
+              <PixelCard variant="blue" className="w-full bg-card" doAnimation={!!winner}>
                 <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
                   {winner ? (
                     <div className="text-center space-y-2">

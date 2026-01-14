@@ -177,8 +177,11 @@ export const useParticipantCardAnimation = ({
   const dismissBackdrop = useCallback((): void => {
     if (phase === 'landed') {
       setIsBackdropDismissed(true);
+      // prevSpinRef 초기화하여 updatePhase에서 결과 처리 로직이 다시 실행되지 않도록 함
+      prevSpinRef.current = { isSpinning: false, myOutcome: null };
+      setPhase(myReady ? 'ready' : 'idle');
     }
-  }, [phase]);
+  }, [phase, myReady]);
 
   // Animation variants
   const containerVariants: Variants = {

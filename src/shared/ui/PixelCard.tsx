@@ -156,8 +156,7 @@ interface PixelCardProps {
   noFocus?: boolean;
   className?: string;
   children: React.ReactNode;
-  hasAnswer?: boolean;
-  isSpinning?: boolean;
+  doAnimation?: boolean;
 }
 
 interface VariantConfig {
@@ -176,8 +175,7 @@ export default function PixelCard({
   noFocus,
   className = '',
   children,
-  hasAnswer = false,
-  isSpinning = false
+  doAnimation = false
 }: PixelCardProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -259,6 +257,10 @@ export default function PixelCard({
 
   useEffect(() => {
     initPixels();
+    // 픽셀 초기화 후 doAnimation이 true면 애니메이션 시작
+    if (doAnimation) {
+      handleAnimation('appear');
+    }
     const observer = new ResizeObserver(() => {
       initPixels();
     });
@@ -275,13 +277,13 @@ export default function PixelCard({
   }, [finalGap, finalSpeed, finalColors, finalNoFocus]);
 
   useEffect(() => {
-    if (hasAnswer && !isSpinning) {
+    if (doAnimation) {
       handleAnimation('appear');
-    } else if (isSpinning) {
+    } else {
       handleAnimation('disappear');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasAnswer, isSpinning]);
+  }, [doAnimation]);
 
   return (
     <div

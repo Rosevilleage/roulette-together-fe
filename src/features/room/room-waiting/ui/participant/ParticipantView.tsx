@@ -17,11 +17,9 @@ export const ParticipantView: React.FC = () => {
 
   const {
     phase,
-    isBackdropDismissed,
     dismissBackdrop,
     showBackdrop,
     showLightBeam,
-    isCardSpinning,
     hasAnswer,
     canClick,
     containerVariants,
@@ -33,16 +31,17 @@ export const ParticipantView: React.FC = () => {
     myOutcome: spin?.myOutcome
   });
 
-  const isReady = phase === 'ready' || (phase === 'landed' && isBackdropDismissed && myReady);
+  const isReady = phase === 'ready';
 
   const getCardVariant = (): 'default' | 'blue' | 'yellow' | 'pink' => {
-    if (phase === 'landed' && isBackdropDismissed) {
+    if (isReady) {
       return 'blue';
     }
     if (phase === 'landed' || phase === 'flip') {
       return spin?.myOutcome === 'WIN' ? 'yellow' : 'pink';
+    } else {
+      return 'default';
     }
-    return 'default';
   };
 
   const handleToggleReady = (): void => {
@@ -141,19 +140,9 @@ export const ParticipantView: React.FC = () => {
                 className={cn('absolute inset-0 bg-background rounded-[25px]', isReady && 'inset-0.5')}
                 style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
               >
-                <PixelCard
-                  variant={getCardVariant()}
-                  className={cn('w-full', isReady && 'bg-primary/10')}
-                  hasAnswer={hasAnswer}
-                  isSpinning={isCardSpinning}
-                >
+                <PixelCard variant={getCardVariant()} className={cn('w-full')} doAnimation={isReady || hasAnswer}>
                   <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
-                    <ParticipantCardContent
-                      phase={phase}
-                      outcome={spin?.myOutcome}
-                      isBackdropDismissed={isBackdropDismissed}
-                      myReady={myReady}
-                    />
+                    <ParticipantCardContent phase={phase} outcome={spin?.myOutcome} />
                   </div>
                 </PixelCard>
               </motion.div>
@@ -165,7 +154,7 @@ export const ParticipantView: React.FC = () => {
                 className="absolute inset-0 bg-background rounded-[25px]"
                 style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
               >
-                <PixelCard variant="default" className="w-full" hasAnswer={false} isSpinning={false}>
+                <PixelCard variant="default" className="w-full" doAnimation={false}>
                   <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
                     <div className="text-center space-y-2">
                       <span className="text-5xl">❓</span>
