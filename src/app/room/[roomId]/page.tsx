@@ -10,9 +10,9 @@ export default function Page(): ReactElement {
   const params = useParams();
   const searchParams = useSearchParams();
 
-  const roomId = params.roomId as string;
-  const urlRole = searchParams.get('role') as 'owner' | 'participant' | null;
-  const initialNickname = searchParams.get('nickname');
+  const roomId = params?.roomId as string;
+  const urlRole = searchParams?.get('role') as 'owner' | 'participant' | null;
+  const initialNickname = searchParams?.get('nickname');
 
   // localStorage를 확인하여 role 결정
   // 1. URL에 role이 명시된 경우 사용
@@ -33,7 +33,7 @@ export default function Page(): ReactElement {
 
   if (!roomId) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-dvh flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-destructive mb-2">잘못된 접근입니다</h1>
           <p className="text-muted-foreground">올바른 방 링크를 통해 접속해주세요.</p>
