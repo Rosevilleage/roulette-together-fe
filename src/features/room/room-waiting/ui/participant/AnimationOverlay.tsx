@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'motion/react';
 import type { AnimationPhase } from '@/features/room/room-waiting/hooks/useParticipantCardAnimation';
+import LightRays from '@/shared/ui/LightRays';
 
 interface AnimationOverlayProps {
   phase: AnimationPhase;
@@ -43,20 +44,29 @@ export const AnimationOverlay: React.FC<AnimationOverlayProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Light beam effect */}
+      {/* Light rays effect */}
       <AnimatePresence>
         {showLightBeam && (
           <motion.div
-            initial={{ opacity: 0, scaleY: 0 }}
-            animate={{ opacity: 1, scaleY: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="fixed top-0 left-1/2 -translate-x-1/2 w-[200px] h-[60vh] z-50 pointer-events-none origin-top"
-            style={{
-              background: 'linear-gradient(to bottom, rgba(255,255,255,0.8), transparent)',
-              filter: 'blur(20px)'
-            }}
-          />
+            className="fixed inset-0 pointer-events-none"
+          >
+            <LightRays
+              raysOrigin="top-center"
+              raysColor="#ffffff"
+              raysSpeed={3}
+              lightSpread={0.15}
+              rayLength={100}
+              pulsating={false}
+              fadeDistance={0.3}
+              saturation={0.8}
+              followMouse={false}
+              mouseInfluence={0}
+            />
+          </motion.div>
         )}
       </AnimatePresence>
     </>
