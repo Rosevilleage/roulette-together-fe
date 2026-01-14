@@ -74,7 +74,7 @@ export const ParticipantView: React.FC = () => {
         onBackdropClick={dismissBackdrop}
       />
 
-      <div className="min-h-dvh w-full flex flex-col items-center justify-center p-4 bg-linear-to-b from-background to-muted/20">
+      <div className="w-full min-h-full flex flex-col items-center justify-center p-4 bg-linear-to-b from-background to-muted/20">
         <div className="w-full max-w-md flex flex-col gap-6">
           {/* Header */}
           <div className="text-center">

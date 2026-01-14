@@ -5,6 +5,7 @@ import { RoomPage } from '@/pages/RoomPage';
 import { ReactElement, useMemo } from 'react';
 import { isOwnedRoom } from '@/entities/room/lib/room_storage';
 import type { Role } from '@/entities/room/model/room.types';
+import { RoomHeader } from '@/features/room/room-waiting/ui/RoomHeader';
 
 export default function Page(): ReactElement {
   const params = useParams();
@@ -42,5 +43,12 @@ export default function Page(): ReactElement {
     );
   }
 
-  return <RoomPage roomId={roomId} role={role} initialNickname={initialNickname || undefined} />;
+  return (
+    <div className="h-dvh w-full flex flex-col overflow-hidden">
+      <RoomHeader />
+      <div className="relative flex-1 w-full overflow-auto">
+        <RoomPage roomId={roomId} role={role} initialNickname={initialNickname || undefined} />
+      </div>
+    </div>
+  );
 }

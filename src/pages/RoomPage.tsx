@@ -195,9 +195,9 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
   }
 
   return (
-    <>
+    <div className="h-full w-full">
       <RoomWaiting />
       <NicknameInputDialog open={shouldShowNicknameDialog} onSubmit={handleNicknameSubmit} />
-    </>
+    </div>
   );
 };

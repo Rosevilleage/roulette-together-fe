@@ -1,7 +1,6 @@
 'use client';
 
 import { useRoomStore } from '@/entities/room/model/room.store';
-import { RoomHeader } from './RoomHeader';
 import { OwnerView } from './owner/OwnerView';
 import { ParticipantView } from './participant/ParticipantView';
 
@@ -19,10 +18,5 @@ export const RoomWaiting: React.FC = () => {
     );
   }
 
-  return (
-    <div className="relative min-h-dvh w-full">
-      <RoomHeader />
-      <div>{isOwner ? <OwnerView /> : <ParticipantView />}</div>
-    </div>
-  );
+  return isOwner ? <OwnerView /> : <ParticipantView />;
 };
