@@ -12,7 +12,7 @@ import { Label } from '@/shared/ui/Label';
 import PixelCard from '@/shared/ui/PixelCard';
 import { Edit2, Save } from 'lucide-react';
 
-type AnimationPhase = 'idle' | 'ready' | 'flying-up' | 'waiting' | 'light-beam' | 'descending' | 'landed';
+type AnimationPhase = 'idle' | 'ready' | 'flying-up' | 'waiting' | 'light-beam' | 'descending' | 'flip' | 'landed';
 
 // Card content component
 const CardContent: React.FC<{
@@ -53,12 +53,20 @@ const CardContent: React.FC<{
     );
   }
 
-  // 결과 내려오는 중
-  if (phase === 'descending') {
+  // 카드 뒤집히는 중 또는 결과 표시
+  if (phase === 'flip') {
+    if (outcome === 'WIN') {
+      return (
+        <div className="text-center space-y-2">
+          <span className="text-5xl">🎉</span>
+          <p className="text-3xl font-bold text-foreground">당첨!</p>
+        </div>
+      );
+    }
     return (
       <div className="text-center space-y-2">
-        {/* <span className="text-5xl">{outcome === 'WIN' ? '🎉' : '😢'}</span> */}
-        <p className="text-lg font-semibold text-foreground">결과 확인 중...</p>
+        <span className="text-5xl">😢</span>
+        <p className="text-xl font-semibold text-muted-foreground">다음 기회에...</p>
       </div>
     );
   }
@@ -106,6 +114,7 @@ const FLYING_UP_DURATION = 600;
 const WAITING_MIN_DURATION = 1000; // Minimum time to show waiting state
 const LIGHT_BEAM_DURATION = 500; // Time for light beam to appear before card descends
 const DESCENDING_DURATION = 1200;
+const FLIP_DURATION = 600; // Time for card to flip from back to front
 
 export const ParticipantView: React.FC = () => {
   const socket = useSocket();
@@ -138,11 +147,15 @@ export const ParticipantView: React.FC = () => {
       // First show light beam
       setPhase('light-beam');
       animationTimeoutRef.current = setTimeout(() => {
-        // Then descend the card
+        // Then descend the card (back side facing)
         setPhase('descending');
         animationTimeoutRef.current = setTimeout(() => {
-          setPhase('landed');
-          pendingResultRef.current = null;
+          // Flip the card to reveal result
+          setPhase('flip');
+          animationTimeoutRef.current = setTimeout(() => {
+            setPhase('landed');
+            pendingResultRef.current = null;
+          }, FLIP_DURATION);
         }, DESCENDING_DURATION);
       }, LIGHT_BEAM_DURATION);
     }
@@ -197,7 +210,7 @@ export const ParticipantView: React.FC = () => {
     }
     // Ready state changed (only when not in animation, or when backdrop is dismissed after landing)
     else if (myReady !== prevMyReady && !spin?.isSpinning) {
-      const isInAnimation = ['flying-up', 'waiting', 'light-beam', 'descending'].includes(phase);
+      const isInAnimation = ['flying-up', 'waiting', 'light-beam', 'descending', 'flip'].includes(phase);
       const canChangePhase = !isInAnimation && (phase !== 'landed' || isBackdropDismissed);
 
       if (canChangePhase) {
@@ -242,11 +255,11 @@ export const ParticipantView: React.FC = () => {
 
   // Computed animation states
   const showBackdrop =
-    ['flying-up', 'waiting', 'light-beam', 'descending', 'landed'].includes(phase) && !isBackdropDismissed;
+    ['flying-up', 'waiting', 'light-beam', 'descending', 'flip', 'landed'].includes(phase) && !isBackdropDismissed;
   // const isBackdropSpinning = ['flying-up', 'waiting'].includes(phase);
-  const showLightBeam = ['light-beam', 'descending', 'landed'].includes(phase) && !isBackdropDismissed;
+  const showLightBeam = ['light-beam', 'descending', 'flip', 'landed'].includes(phase) && !isBackdropDismissed;
   const isCardSpinning = ['ready', 'flying-up', 'descending'].includes(phase);
-  const hasAnswer = phase === 'landed' && !isBackdropDismissed;
+  const hasAnswer = (phase === 'flip' || phase === 'landed') && !isBackdropDismissed;
   // Allow clicking when idle, ready, or when backdrop is dismissed after landing
   const canClick = phase === 'idle' || phase === 'ready' || (phase === 'landed' && isBackdropDismissed);
 
@@ -255,14 +268,15 @@ export const ParticipantView: React.FC = () => {
     if (phase === 'landed' && isBackdropDismissed) {
       return 'blue';
     }
-    if (phase === 'landed' || phase === 'descending') {
+    if (phase === 'landed' || phase === 'flip') {
       return spin?.myOutcome === 'WIN' ? 'yellow' : 'pink';
     }
+    // descending 상태에서는 뒷면이므로 default 유지
     return 'default';
   };
 
-  // Framer Motion variants
-  const cardVariants = {
+  // 컨테이너 variants (y, opacity, scale만 담당)
+  const containerVariants = {
     idle: { y: 0, opacity: 1, scale: 1 },
     ready: { y: 0, opacity: 1, scale: 1 },
     'flying-up': {
@@ -272,14 +286,39 @@ export const ParticipantView: React.FC = () => {
       transition: { duration: 0.6, ease: 'easeIn' as const }
     },
     waiting: { y: '-100vh', opacity: 0 },
-    'light-beam': { y: '-100vh', opacity: 0 }, // Card stays hidden while light beam appears
+    'light-beam': { y: '-100vh', opacity: 0 },
     descending: {
       y: 0,
       opacity: 1,
       scale: 1,
       transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] as const }
     },
+    flip: { y: 0, opacity: 1, scale: 1 },
     landed: { y: 0, opacity: 1, scale: 1 }
+  };
+
+  // 앞면 variants (rotateY 담당)
+  const frontVariants = {
+    idle: { rotateY: 0 },
+    ready: { rotateY: 0 },
+    'flying-up': { rotateY: 0, transition: { duration: 0.6 } },
+    waiting: { rotateY: 180 },
+    'light-beam': { rotateY: 180 },
+    descending: { rotateY: 180, transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] as const } },
+    flip: { rotateY: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
+    landed: { rotateY: 0 }
+  };
+
+  // 뒷면 variants (앞면보다 180도 더 회전)
+  const backVariants = {
+    idle: { rotateY: 180 },
+    ready: { rotateY: 180 },
+    'flying-up': { rotateY: 180, transition: { duration: 0.6 } },
+    waiting: { rotateY: 360 },
+    'light-beam': { rotateY: 360 },
+    descending: { rotateY: 360, transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] as const } },
+    flip: { rotateY: 180, transition: { duration: 0.6, ease: 'easeOut' as const } },
+    landed: { rotateY: 180 }
   };
 
   const handleToggleReady = (): void => {
@@ -315,7 +354,7 @@ export const ParticipantView: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-40 overflow-hidden"
+            className="fixed inset-0 overflow-hidden"
           >
             {/* Semi-transparent background */}
             <div
@@ -419,30 +458,56 @@ export const ParticipantView: React.FC = () => {
           )}
 
           {/* Ready Card (PixelCard) */}
-          <div className="flex justify-center items-center">
+          <div className="flex justify-center items-center" style={{ perspective: '1000px' }}>
             <motion.div
-              variants={cardVariants}
+              variants={containerVariants}
               animate={phase}
               onClick={handleToggleReady}
+              style={{ transformStyle: 'preserve-3d' }}
               className={`relative w-full p-1 max-w-[300px] aspect-4/5 z-50 ${
                 canClick ? 'cursor-pointer hover:scale-105 transition-transform' : 'cursor-default'
               }`}
             >
-              <PixelCard
-                variant={getCardVariant()}
-                className="w-full bg-card"
-                hasAnswer={hasAnswer}
-                isSpinning={isCardSpinning}
+              {/* 앞면 */}
+              <motion.div
+                variants={frontVariants}
+                animate={phase}
+                className="absolute inset-0 bg-background rounded-[25px]"
+                style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
               >
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
-                  <CardContent
-                    phase={phase}
-                    outcome={spin?.myOutcome}
-                    isBackdropDismissed={isBackdropDismissed}
-                    myReady={myReady}
-                  />
-                </div>
-              </PixelCard>
+                <PixelCard
+                  variant={getCardVariant()}
+                  className="w-full"
+                  hasAnswer={hasAnswer}
+                  isSpinning={isCardSpinning}
+                >
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
+                    <CardContent
+                      phase={phase}
+                      outcome={spin?.myOutcome}
+                      isBackdropDismissed={isBackdropDismissed}
+                      myReady={myReady}
+                    />
+                  </div>
+                </PixelCard>
+              </motion.div>
+
+              {/* 뒷면 */}
+              <motion.div
+                variants={backVariants}
+                animate={phase}
+                className="absolute inset-0 bg-background rounded-[25px]"
+                style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+              >
+                <PixelCard variant="default" className="w-full" hasAnswer={false} isSpinning={false}>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
+                    <div className="text-center space-y-2">
+                      <span className="text-5xl">❓</span>
+                      <p className="text-lg font-semibold text-foreground">두근두근...</p>
+                    </div>
+                  </div>
+                </PixelCard>
+              </motion.div>
             </motion.div>
           </div>
         </div>

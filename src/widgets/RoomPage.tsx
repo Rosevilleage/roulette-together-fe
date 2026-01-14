@@ -182,30 +182,13 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
     socket?.connected && role === 'participant' && !nickname.trim() && !myNickname
   );
 
-  if (!socket) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-          <p className="text-muted-foreground">소켓 초기화 중...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!socket.connected) {
-    const isOwnerRole = role === 'owner';
+  // 로딩 UI (SSR/CSR 일관된 구조 유지)
+  if (!socket || !socket.connected) {
     return (
       <div className="min-h-dvh flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground mb-2">서버에 연결하는 중...</p>
-          {isOwnerRole && (
-            <p className="text-sm text-muted-foreground bg-muted/50 rounded-md p-3 mt-4">
-              💡 방장은 탭을 닫았다가 30분 이내에 다시 접속하면 같은 방으로 돌아올 수 있습니다.
-            </p>
-          )}
-          <p className="text-xs text-muted-foreground mt-2">Socket ID: {socket.id || '연결 대기 중'}</p>
         </div>
       </div>
     );
