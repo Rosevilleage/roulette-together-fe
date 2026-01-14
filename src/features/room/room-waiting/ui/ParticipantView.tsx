@@ -21,6 +21,7 @@ const CardContent: React.FC<{
   isBackdropDismissed: boolean;
   myReady: boolean;
 }> = ({ phase, outcome, isBackdropDismissed, myReady }) => {
+  // idle 상태
   if (phase === 'idle') {
     return (
       <div className="text-center space-y-2">
@@ -31,6 +32,7 @@ const CardContent: React.FC<{
     );
   }
 
+  // ready 상태
   if (phase === 'ready') {
     return (
       <div className="text-center space-y-2">
@@ -41,6 +43,7 @@ const CardContent: React.FC<{
     );
   }
 
+  // 추첨 중 애니메이션 상태
   if (phase === 'flying-up' || phase === 'waiting') {
     return (
       <div className="text-center space-y-2">
@@ -50,28 +53,42 @@ const CardContent: React.FC<{
     );
   }
 
+  // 결과 내려오는 중
   if (phase === 'descending') {
     return (
       <div className="text-center space-y-2">
-        <span className="text-5xl">{outcome === 'WIN' ? '🎉' : '😢'}</span>
+        {/* <span className="text-5xl">{outcome === 'WIN' ? '🎉' : '😢'}</span> */}
         <p className="text-lg font-semibold text-foreground">결과 확인 중...</p>
       </div>
     );
   }
 
-  // landed
-  const guideText = isBackdropDismissed
-    ? myReady
-      ? '준비를 취소하려면 클릭'
-      : '다시 준비하려면 클릭'
-    : '배경을 클릭하면 닫힙니다';
+  // landed 상태 - backdrop이 dismiss되면 myReady에 따라 idle/ready UI 표시
+  if (phase === 'landed' && isBackdropDismissed) {
+    if (myReady) {
+      return (
+        <div className="text-center space-y-2">
+          <span className="text-5xl">✅</span>
+          <p className="text-lg font-semibold text-foreground">준비 완료!</p>
+          <p className="absolute bottom-8 left-0 right-0 text-xs text-foreground/50">취소하려면 클릭</p>
+        </div>
+      );
+    }
+    return (
+      <div className="text-center space-y-2">
+        <span className="text-5xl">⏳</span>
+        <p className="text-lg font-semibold text-foreground">준비하기</p>
+        <p className="absolute bottom-8 left-0 right-0 text-xs text-foreground/50">카드를 클릭하세요</p>
+      </div>
+    );
+  }
 
+  // landed 상태 - backdrop이 아직 dismiss 안 됨 (결과 표시)
   if (outcome === 'WIN') {
     return (
       <div className="text-center space-y-2">
         <span className="text-5xl">🎉</span>
         <p className="text-3xl font-bold text-foreground">당첨!</p>
-        <p className="absolute bottom-8 left-0 right-0 text-xs text-foreground">{guideText}</p>
       </div>
     );
   }
@@ -80,7 +97,6 @@ const CardContent: React.FC<{
     <div className="text-center space-y-2">
       <span className="text-5xl">😢</span>
       <p className="text-xl font-semibold text-muted-foreground">다음 기회에...</p>
-      <p className="absolute bottom-8 left-0 right-0 text-xs text-foreground">{guideText}</p>
     </div>
   );
 };
@@ -180,19 +196,12 @@ export const ParticipantView: React.FC = () => {
       // If still in flying-up, the result will be processed after transitionToWaiting
     }
     // Ready state changed (only when not in animation, or when backdrop is dismissed after landing)
-    else if (
-      myReady !== prevMyReady &&
-      (!['flying-up', 'waiting', 'light-beam', 'descending', 'landed'].includes(phase) ||
-        (phase === 'landed' && isBackdropDismissed))
-    ) {
-      // When backdrop is dismissed after landing, allow phase change regardless of myOutcome
-      const canChangeToReady =
-        phase === 'landed' && isBackdropDismissed ? !spin?.isSpinning : !spin?.isSpinning && !spin?.myOutcome;
+    else if (myReady !== prevMyReady && !spin?.isSpinning) {
+      const isInAnimation = ['flying-up', 'waiting', 'light-beam', 'descending'].includes(phase);
+      const canChangePhase = !isInAnimation && (phase !== 'landed' || isBackdropDismissed);
 
-      if (myReady && canChangeToReady) {
-        setPhase('ready');
-      } else if (!myReady && !spin?.isSpinning) {
-        setPhase('idle');
+      if (canChangePhase) {
+        setPhase(myReady ? 'ready' : 'idle');
       }
     }
 
@@ -237,15 +246,19 @@ export const ParticipantView: React.FC = () => {
   // const isBackdropSpinning = ['flying-up', 'waiting'].includes(phase);
   const showLightBeam = ['light-beam', 'descending', 'landed'].includes(phase) && !isBackdropDismissed;
   const isCardSpinning = ['ready', 'flying-up', 'descending'].includes(phase);
-  const hasAnswer = phase === 'landed';
+  const hasAnswer = phase === 'landed' && !isBackdropDismissed;
   // Allow clicking when idle, ready, or when backdrop is dismissed after landing
   const canClick = phase === 'idle' || phase === 'ready' || (phase === 'landed' && isBackdropDismissed);
 
-  const getCardVariant = (): 'default' | 'blue' | 'yellow' => {
-    if (phase === 'landed' || phase === 'descending') {
-      return spin?.myOutcome === 'WIN' ? 'yellow' : 'default';
+  const getCardVariant = (): 'default' | 'blue' | 'yellow' | 'pink' => {
+    // landed 상태에서 backdrop이 dismiss되면 기본 blue 색상으로
+    if (phase === 'landed' && isBackdropDismissed) {
+      return 'blue';
     }
-    return 'blue';
+    if (phase === 'landed' || phase === 'descending') {
+      return spin?.myOutcome === 'WIN' ? 'yellow' : 'pink';
+    }
+    return 'default';
   };
 
   // Framer Motion variants
@@ -315,6 +328,7 @@ export const ParticipantView: React.FC = () => {
                 }
               }}
             />
+            <p className="absolute bottom-8 left-0 right-0 text-xs text-center text-foreground">클릭하여 결과 닫기</p>
           </motion.div>
         )}
       </AnimatePresence>
