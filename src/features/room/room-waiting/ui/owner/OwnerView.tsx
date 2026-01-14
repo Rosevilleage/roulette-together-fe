@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { useRoomStore } from '@/entities/room/model/room.store';
 import { useSocket } from '@/shared/hooks/useSocket';
 import { Button } from '@/shared/ui/Button';
-import { Card } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
-import { ShareIcon, CheckCircle2, Clock, Users, Copy, Check } from 'lucide-react';
+import PixelCard from '@/shared/ui/PixelCard';
+import { ShareIcon, Users, Copy, Check } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 export const OwnerView: React.FC = () => {
@@ -84,45 +84,6 @@ export const OwnerView: React.FC = () => {
           <p className="text-muted-foreground">참가자들이 모두 준비될 때까지 기다려주세요</p>
         </div>
 
-        {/* Participants List */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              참가자 목록
-            </h3>
-            <Badge variant="secondary">
-              {readyCount}/{participants.length}명 준비 완료
-            </Badge>
-          </div>
-
-          {participants.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>아직 참가자가 없습니다</p>
-              <p className="text-sm mt-2">링크를 공유해보세요!</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {participants.map(participant => (
-                <div key={participant.rid} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <span className="font-medium">{participant.nickname}</span>
-                  {participant.ready ? (
-                    <Badge variant="default" className="flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" />
-                      준비 완료
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      대기 중
-                    </Badge>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </Card>
-
         {/* Actions */}
         <div className="flex flex-col gap-3">
           <Button
@@ -158,7 +119,45 @@ export const OwnerView: React.FC = () => {
           </div>
         </div>
 
-        {/* Info */}
+        {/* Participants List */}
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              참가자 목록
+            </h3>
+            <Badge variant="secondary">
+              {readyCount}/{participants.length}명 준비 완료
+            </Badge>
+          </div>
+
+          {participants.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>아직 참가자가 없습니다</p>
+              <p className="text-sm mt-2">링크를 공유해보세요!</p>
+            </div>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 md:grid-cols-4 sm:overflow-x-visible sm:pb-0">
+              {participants.map(participant => (
+                <div key={participant.rid} className="shrink-0 w-32 aspect-4/5 sm:w-auto">
+                  <PixelCard
+                    variant={participant.ready ? 'blue' : 'default'}
+                    doAnimation={participant.ready}
+                    className="h-full"
+                  >
+                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none p-2">
+                      <span className="text-3xl mb-2">{participant.ready ? '✅' : '⏳'}</span>
+                      <p className="text-sm font-semibold text-foreground text-center truncate w-full px-2">
+                        {participant.nickname}
+                      </p>
+                      <p className="text-xs text-foreground/60 mt-1">{participant.ready ? '준비 완료' : '대기 중'}</p>
+                    </div>
+                  </PixelCard>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
