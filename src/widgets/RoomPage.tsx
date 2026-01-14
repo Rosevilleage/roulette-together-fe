@@ -196,7 +196,7 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
   if (!socket.connected) {
     const isOwnerRole = role === 'owner';
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-dvh flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground mb-2">서버에 연결하는 중...</p>

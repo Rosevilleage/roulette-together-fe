@@ -73,7 +73,7 @@ export const OwnerView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-linear-to-b from-background to-muted/20">
+    <div className="h-full min-h-dvh w-full flex flex-col items-center justify-center p-4 bg-linear-to-b from-background to-muted/20">
       <div className="w-full max-w-2xl flex flex-col gap-6">
         {/* Header */}
         <div className="text-center">

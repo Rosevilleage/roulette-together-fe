@@ -10,7 +10,7 @@ export const RoomWaiting: React.FC = () => {
 
   if (!myNickname) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-dvh flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
           <p className="text-muted-foreground">방에 입장하는 중...</p>
@@ -22,7 +22,7 @@ export const RoomWaiting: React.FC = () => {
   return (
     <>
       <RoomHeader />
-      <div className="pt-16">{isOwner ? <OwnerView /> : <ParticipantView />}</div>
+      <div>{isOwner ? <OwnerView /> : <ParticipantView />}</div>
     </>
   );
 };

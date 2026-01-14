@@ -12,7 +12,7 @@ import { CheckCircle2, Clock, Edit2, Save } from 'lucide-react';
 
 export const ParticipantView: React.FC = () => {
   const socket = useSocket();
-  const { roomId, myNickname, myReady, config } = useRoomStore();
+  const { roomId, myNickname, myReady, config, roomTitle } = useRoomStore();
   const [isEditingNickname, setIsEditingNickname] = useState<boolean>(false);
   const [newNickname, setNewNickname] = useState<string>(myNickname || '');
 
@@ -40,14 +40,14 @@ export const ParticipantView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-linear-to-b from-background to-muted/20">
+    <div className="min-h-dvh flex flex-col items-center justify-center p-4 bg-linear-to-b from-background to-muted/20">
       <div className="w-full max-w-md flex flex-col gap-6">
         {/* Header */}
         <div className="text-center">
           <Badge variant="secondary" className="mb-2">
             참가자
           </Badge>
-          <h1 className="text-3xl font-bold mb-2">룰렛 대기실</h1>
+          <h1 className="text-3xl font-bold mb-2">{roomTitle} 대기실</h1>
           <p className="text-muted-foreground">준비가 되면 준비 완료 버튼을 눌러주세요</p>
         </div>
 
