@@ -13,7 +13,11 @@
       "mcp__shadcn__view_items_in_registries",
       "mcp__shadcn__get_add_command_for_items",
       "mcp__shadcn__get_audit_checklist",
-      "mcp__shadcn__get_item_examples_from_registries"
+      "mcp__shadcn__get_item_examples_from_registries",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)",
+      "Bash(node -e:*)",
+      "Bash(grep:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

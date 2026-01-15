@@ -21,18 +21,17 @@ export const ResultCard: React.FC<ResultCardProps> = ({ isFlipped, winners, card
         style={{ transformStyle: 'preserve-3d' }}
       >
         {/* Front Face - Question Mark (픽셀 애니메이션 없음) */}
-        <div className="absolute inset-0 bg-background rounded-[25px]" style={{ backfaceVisibility: 'hidden' }}>
+        <div className="absolute inset-0 bg-card rounded-[25px]" style={{ backfaceVisibility: 'hidden' }}>
           <PixelCard variant="default" doAnimation={false} className="h-full">
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none p-2">
               <span className="text-4xl mb-2">?</span>
-              <p className="text-sm font-semibold text-foreground text-center">추첨 중...</p>
             </div>
           </PixelCard>
         </div>
 
         {/* Back Face - Winners List (뒤집힌 후에만 픽셀 애니메이션) */}
         <div
-          className="absolute inset-0 bg-card rounded-[25px]"
+          className="absolute inset-0 bg-background rounded-[25px]"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
         >
           <PixelCard variant="yellow" doAnimation={isFlipped} className="h-full">

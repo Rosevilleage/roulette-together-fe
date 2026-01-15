@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useRef, useMemo, useLayoutEffect } from 'react';
-import { motion } from 'motion/react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRoomStore } from '@/entities/room/model/room.store';
 import { useSocket } from '@/shared/hooks/useSocket';
 import { Button } from '@/shared/ui/Button';
@@ -10,42 +9,34 @@ import PixelCard from '@/shared/ui/PixelCard';
 import { ShareIcon, Users, Copy, Check } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { useOwnerCardAnimation } from '../../hooks/useOwnerCardAnimation';
+import { useCardDomAnimation } from '../../hooks/useCardDomAnimation';
 import { OwnerAnimationOverlay } from './OwnerAnimationOverlay';
 import { CardStack } from './CardStack';
 
-// 카드 위치 정보 타입
-interface CardPosition {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-// 뒤집히는 참가자 카드 컴포넌트
+// 뒤집히는 참가자 카드 컴포넌트 (CSS 기반 플립)
 interface FlippableCardProps {
   nickname: string;
   ready: boolean;
   isFlipped: boolean;
-  isAnimating: boolean; // 애니메이션 중인지 (gathering/stacked 등)
+  isAnimating: boolean;
 }
 
 const FlippableCard: React.FC<FlippableCardProps> = ({ nickname, ready, isFlipped, isAnimating }) => {
-  // 애니메이션 중에는 PixelCard 대신 단순 배경 사용 (성능 최적화)
   const shouldUseSimpleCard = isAnimating;
 
-  // 단순 카드 (애니메이션 중)
   if (shouldUseSimpleCard) {
     return (
       <div className="w-full h-full" style={{ perspective: '1000px' }}>
-        <motion.div
-          className="relative w-full h-full"
-          animate={{ rotateY: isFlipped ? 180 : 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-          style={{ transformStyle: 'preserve-3d' }}
+        <div
+          className="relative w-full h-full transition-transform duration-400 ease-out"
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+          }}
         >
           {/* 앞면 - 단순 배경 */}
           <div
-            className={`absolute inset-0 rounded-[25px] border border-[#27272a] bg-background`}
+            className="absolute inset-0 rounded-[25px] border border-[#27272a] bg-background"
             style={{ backfaceVisibility: 'hidden' }}
           >
             <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
@@ -64,7 +55,7 @@ const FlippableCard: React.FC<FlippableCardProps> = ({ nickname, ready, isFlippe
               <span className="text-4xl">?</span>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     );
   }
@@ -72,11 +63,12 @@ const FlippableCard: React.FC<FlippableCardProps> = ({ nickname, ready, isFlippe
   // 일반 카드 (idle 상태) - PixelCard 사용
   return (
     <div className="w-full h-full" style={{ perspective: '1000px' }}>
-      <motion.div
-        className="relative w-full h-full"
-        animate={{ rotateY: isFlipped ? 180 : 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
-        style={{ transformStyle: 'preserve-3d' }}
+      <div
+        className="relative w-full h-full transition-transform duration-400 ease-out"
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+        }}
       >
         {/* 앞면 - 참가자 정보 */}
         <div className="absolute inset-0 bg-background rounded-[25px]" style={{ backfaceVisibility: 'hidden' }}>
@@ -100,7 +92,7 @@ const FlippableCard: React.FC<FlippableCardProps> = ({ nickname, ready, isFlippe
             </div>
           </PixelCard>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
@@ -110,173 +102,40 @@ export const OwnerView: React.FC = () => {
   const { roomId, myNickname, participants, readyCount, allReady } = useRoomStore();
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
 
-  // 각 카드의 DOM 위치를 저장하는 ref
-  const cardRefsMap = useRef<Map<string, HTMLDivElement | null>>(new Map());
-
-  // 카드 위치 상태 (애니메이션 시작 시 캡처)
-  const [cardPositions, setCardPositions] = useState<Map<string, CardPosition>>(new Map());
-
-  // 캡처된 카드 크기 (첫 번째 카드 기준)
-  const [capturedCardSize, setCapturedCardSize] = useState<{ width: number; height: number } | null>(null);
-
-  // Animation hook
+  // Animation hooks
   const { phase, showBackdrop, showLightBeams, isFlipped, winners, dismissBackdrop } = useOwnerCardAnimation();
+  const { setCardRef, getFirstCardSize, animatePhase } = useCardDomAnimation();
 
   // 당첨자 닉네임 Set
   const winnerNicknames = useMemo(() => {
     return new Set(winners.map(w => w.nickname));
   }, [winners]);
 
-  // gathering 시작 시 카드 위치 및 크기 캡처 (배치 처리로 reflow 최소화)
-  useLayoutEffect(() => {
-    if (phase === 'gathering') {
-      // 모든 rect를 먼저 한 번에 읽기 (읽기 작업 배치)
-      const rects = new Map<string, DOMRect>();
-      cardRefsMap.current.forEach((el, rid) => {
-        if (el) {
-          rects.set(rid, el.getBoundingClientRect());
-        }
-      });
+  // 카드 크기 상태 (CardStack에 전달)
+  const [cardSize, setCardSize] = useState<{ width: number; height: number } | null>(null);
 
-      // 읽기 완료 후 상태 업데이트 (쓰기 작업 분리)
-      const positions = new Map<string, CardPosition>();
-      let firstCardSize: { width: number; height: number } | null = null;
-
-      rects.forEach((rect, rid) => {
-        positions.set(rid, {
-          x: rect.left + rect.width / 2,
-          y: rect.top + rect.height / 2,
-          width: rect.width,
-          height: rect.height
-        });
-
-        if (!firstCardSize) {
-          firstCardSize = { width: rect.width, height: rect.height };
-        }
-      });
-
-      setCardPositions(positions);
-      if (firstCardSize) {
-        setCapturedCardSize(firstCardSize);
+  // 첫 카드 크기 캡처
+  const hasCapturedRef = useRef(false);
+  useEffect(() => {
+    if (phase === 'gathering' && !hasCapturedRef.current) {
+      const size = getFirstCardSize();
+      if (size) {
+        setCardSize(size);
+        hasCapturedRef.current = true;
       }
     }
-  }, [phase]);
-
-  // 화면 중앙 좌표
-  const centerX = typeof window !== 'undefined' ? window.innerWidth / 2 : 0;
-  const centerY = typeof window !== 'undefined' ? window.innerHeight / 2 : 0;
-
-  // 스택 오프셋 계산
-  const getStackOffset = (index: number): { rotate: number; y: number } => {
-    const direction = index % 2 === 0 ? 1 : -1;
-    const rotate = direction * (index * 2);
-    const y = -index * 2;
-    return { rotate, y };
-  };
-
-  // 카드 ref 설정 함수
-  const setCardRef =
-    (rid: string) =>
-    (el: HTMLDivElement | null): void => {
-      cardRefsMap.current.set(rid, el);
-    };
-
-  // 당첨자인지 확인
-  const isWinner = (nickname: string): boolean => {
-    return winnerNicknames.has(nickname);
-  };
-
-  // 카드 애니메이션 상태 계산
-  const getCardAnimationState = (
-    rid: string,
-    nickname: string,
-    index: number
-  ): {
-    x: number;
-    y: number;
-    rotate: number;
-    opacity: number;
-    zIndex: number;
-    isCardFlipped: boolean;
-  } => {
-    const cardPos = cardPositions.get(rid);
-    const { rotate: stackRotate, y: stackY } = getStackOffset(index);
-    const participantIsWinner = isWinner(nickname);
-
-    // idle: 원위치, 앞면
     if (phase === 'idle') {
-      return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, isCardFlipped: false };
+      hasCapturedRef.current = false;
     }
+  }, [phase, getFirstCardSize]);
 
-    // gathering: 중앙으로 이동하면서 뒤집힘
-    if (phase === 'gathering') {
-      if (!cardPos) {
-        return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, isCardFlipped: true };
-      }
+  // Phase 변경 시 DOM 애니메이션 실행
+  useEffect(() => {
+    animatePhase(phase, participants, winnerNicknames);
+  }, [phase, participants, winnerNicknames, animatePhase]);
 
-      const offsetX = centerX - cardPos.x;
-      const offsetY = centerY - cardPos.y;
-
-      return {
-        x: offsetX,
-        y: offsetY,
-        rotate: 0,
-        opacity: 1,
-        zIndex: participants.length - index + 50,
-        isCardFlipped: true
-      };
-    }
-
-    // stacked: 중앙에서 스택 형태로 정렬, 뒤집힌 상태 유지
-    if (phase === 'stacked') {
-      if (!cardPos) {
-        return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, isCardFlipped: true };
-      }
-
-      const offsetX = centerX - cardPos.x;
-      const offsetY = centerY - cardPos.y;
-
-      return {
-        x: offsetX,
-        y: offsetY + stackY,
-        rotate: stackRotate,
-        opacity: 1,
-        zIndex: participants.length - index + 50,
-        isCardFlipped: true
-      };
-    }
-
-    // reveal-flip: 원위치로 복귀, 아직 뒤집힌 상태 (당첨자는 투명하게)
-    if (phase === 'reveal-flip') {
-      return {
-        x: 0,
-        y: 0,
-        rotate: 0,
-        opacity: participantIsWinner ? 0 : 1,
-        zIndex: 1,
-        isCardFlipped: true
-      };
-    }
-
-    // result-shown: 원위치, 다시 앞면으로 (당첨자는 투명 유지)
-    if (phase === 'result-shown') {
-      return {
-        x: 0,
-        y: 0,
-        rotate: 0,
-        opacity: participantIsWinner ? 0 : 1,
-        zIndex: 1,
-        isCardFlipped: false
-      };
-    }
-
-    // dispersing: 원위치, 앞면
-    if (phase === 'dispersing') {
-      return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, isCardFlipped: false };
-    }
-
-    return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, isCardFlipped: false };
-  };
+  // 카드가 뒤집혔는지 여부 (phase 기반)
+  const isCardFlipped = phase === 'gathering' || phase === 'stacked' || phase === 'reveal-flip';
 
   const [isSharing, setIsSharing] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
@@ -285,9 +144,7 @@ export const OwnerView: React.FC = () => {
     typeof window !== 'undefined' ? `${window.location.origin}/room/${roomId}?role=participant` : '';
 
   const handleCopyLink = async (): Promise<void> => {
-    if (isCopied) {
-      return;
-    }
+    if (isCopied) return;
 
     try {
       await navigator.clipboard.writeText(participantUrl);
@@ -299,9 +156,7 @@ export const OwnerView: React.FC = () => {
   };
 
   const handleShareLink = async (): Promise<void> => {
-    if (isSharing) {
-      return;
-    }
+    if (isSharing) return;
 
     setIsSharing(true);
 
@@ -323,21 +178,17 @@ export const OwnerView: React.FC = () => {
   };
 
   const handleSpinRoulette = (): void => {
-    if (!socket || !roomId || !allReady) {
-      return;
-    }
+    if (!socket || !roomId || !allReady) return;
 
     const requestId = uuidv4();
     setIsSpinning(true);
     socket.emit('spin:request', { roomId, requestId });
 
-    // Reset spinning state after timeout
     setTimeout(() => {
       setIsSpinning(false);
     }, 5000);
   };
 
-  // Handle backdrop click - only dismiss in result-shown phase
   const handleBackdropClick = (): void => {
     dismissBackdrop();
   };
@@ -357,7 +208,7 @@ export const OwnerView: React.FC = () => {
         participantCount={participants.length}
         winners={winners}
         isFlipped={isFlipped}
-        cardSize={capturedCardSize}
+        cardSize={cardSize}
       />
 
       <div className="w-full min-h-full flex flex-col items-center justify-center p-4 bg-linear-to-b from-background to-muted/20">
@@ -429,41 +280,23 @@ export const OwnerView: React.FC = () => {
                   phase === 'idle' ? 'overflow-x-auto sm:overflow-x-visible' : 'overflow-visible'
                 }`}
               >
-                {participants.map((participant, index) => {
-                  const animState = getCardAnimationState(participant.rid, participant.nickname, index);
-
-                  return (
-                    <motion.div
-                      key={participant.rid}
-                      ref={setCardRef(participant.rid)}
-                      className="shrink-0 w-48 aspect-4/5 sm:w-auto"
-                      animate={{
-                        x: animState.x,
-                        y: animState.y,
-                        rotate: animState.rotate,
-                        opacity: animState.opacity
-                      }}
-                      style={{
-                        zIndex: animState.zIndex,
-                        // GPU 레이어 강제 생성 및 will-change 최적화
-                        willChange: phase !== 'idle' ? 'transform, opacity' : 'auto',
-                        transform: 'translateZ(0)'
-                      }}
-                      transition={{
-                        duration: phase === 'gathering' ? 0.5 : 0.6,
-                        ease: 'easeOut',
-                        delay: phase === 'gathering' ? index * 0.03 : 0
-                      }}
-                    >
-                      <FlippableCard
-                        nickname={participant.nickname}
-                        ready={participant.ready}
-                        isFlipped={animState.isCardFlipped}
-                        isAnimating={phase !== 'idle'}
-                      />
-                    </motion.div>
-                  );
-                })}
+                {participants.map(participant => (
+                  <div
+                    key={participant.rid}
+                    ref={setCardRef(participant.rid)}
+                    className="shrink-0 w-48 aspect-4/5 sm:w-auto"
+                    style={{
+                      willChange: phase !== 'idle' ? 'transform, opacity' : 'auto'
+                    }}
+                  >
+                    <FlippableCard
+                      nickname={participant.nickname}
+                      ready={participant.ready}
+                      isFlipped={isCardFlipped}
+                      isAnimating={phase !== 'idle'}
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </div>
