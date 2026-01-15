@@ -9,15 +9,16 @@ interface CardStackProps {
   participantCount: number;
   winners: Array<{ nickname: string; outcome: 'WIN' | 'LOSE' }>;
   isFlipped: boolean;
+  cardSize: { width: number; height: number } | null;
 }
 
-export const CardStack: React.FC<CardStackProps> = ({ phase, participantCount, winners, isFlipped }) => {
+export const CardStack: React.FC<CardStackProps> = ({ phase, participantCount, winners, isFlipped, cardSize }) => {
   // ResultCard는 stacked 이후부터 표시
   const isVisible = ['stacked', 'reveal-flip', 'result-shown', 'dispersing'].includes(phase);
 
   return (
     <AnimatePresence>
-      {isVisible && (
+      {isVisible && cardSize && (
         <motion.div
           className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
           initial={{ opacity: 0 }}
@@ -29,15 +30,12 @@ export const CardStack: React.FC<CardStackProps> = ({ phase, participantCount, w
           <motion.div
             className="relative"
             style={{ zIndex: participantCount + 1 }}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{
-              scale: phase === 'dispersing' ? 0.8 : 1,
-              opacity: phase === 'dispersing' ? 0 : 1
-            }}
-            exit={{ scale: 0.8, opacity: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: phase === 'dispersing' ? 0 : 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
           >
-            <ResultCard isFlipped={isFlipped} winners={winners} />
+            <ResultCard isFlipped={isFlipped} winners={winners} cardSize={cardSize} />
           </motion.div>
         </motion.div>
       )}

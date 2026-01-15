@@ -4,6 +4,7 @@ module.exports = {
     { value: '🐛 fix', name: '🐛 fix:      버그 수정' },
     { value: '📝 docs', name: '📝 docs:     문서 수정' },
     { value: '💄 style', name: '💄 style:    코드 포맷팅, 세미콜론 누락 등 (코드 변경 없음)' },
+    { value: '🎨 design', name: '🎨 design:   UI/UX 디자인 수정' },
     { value: '♻️ refactor', name: '♻️  refactor: 코드 리팩토링' },
     { value: '⚡ perf', name: '⚡ perf:     성능 개선' },
     { value: '🧪 test', name: '🧪 test:     테스트 코드 추가/수정' },

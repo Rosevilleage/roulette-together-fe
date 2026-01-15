@@ -75,6 +75,9 @@ export const OwnerView: React.FC = () => {
   // 카드 위치 상태 (애니메이션 시작 시 캡처)
   const [cardPositions, setCardPositions] = useState<Map<string, CardPosition>>(new Map());
 
+  // 캡처된 카드 크기 (첫 번째 카드 기준)
+  const [capturedCardSize, setCapturedCardSize] = useState<{ width: number; height: number } | null>(null);
+
   // Animation hook
   const { phase, showBackdrop, showLightBeams, isFlipped, winners, dismissBackdrop } = useOwnerCardAnimation();
 
@@ -83,10 +86,12 @@ export const OwnerView: React.FC = () => {
     return new Set(winners.map(w => w.nickname));
   }, [winners]);
 
-  // gathering 시작 시 카드 위치 캡처
+  // gathering 시작 시 카드 위치 및 크기 캡처
   useLayoutEffect(() => {
     if (phase === 'gathering') {
       const positions = new Map<string, CardPosition>();
+      let firstCardSize: { width: number; height: number } | null = null;
+
       cardRefsMap.current.forEach((el, rid) => {
         if (el) {
           const rect = el.getBoundingClientRect();
@@ -96,9 +101,18 @@ export const OwnerView: React.FC = () => {
             width: rect.width,
             height: rect.height
           });
+
+          // 첫 번째 카드 크기 캡처
+          if (!firstCardSize) {
+            firstCardSize = { width: rect.width, height: rect.height };
+          }
         }
       });
+
       setCardPositions(positions);
+      if (firstCardSize) {
+        setCapturedCardSize(firstCardSize);
+      }
     }
   }, [phase]);
 
@@ -137,7 +151,6 @@ export const OwnerView: React.FC = () => {
     rotate: number;
     opacity: number;
     zIndex: number;
-    scale: number;
     isCardFlipped: boolean;
   } => {
     const cardPos = cardPositions.get(rid);
@@ -146,13 +159,13 @@ export const OwnerView: React.FC = () => {
 
     // idle: 원위치, 앞면
     if (phase === 'idle') {
-      return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, scale: 1, isCardFlipped: false };
+      return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, isCardFlipped: false };
     }
 
     // gathering: 중앙으로 이동하면서 뒤집힘
     if (phase === 'gathering') {
       if (!cardPos) {
-        return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, scale: 1, isCardFlipped: true };
+        return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, isCardFlipped: true };
       }
 
       const offsetX = centerX - cardPos.x;
@@ -164,7 +177,6 @@ export const OwnerView: React.FC = () => {
         rotate: 0,
         opacity: 1,
         zIndex: participants.length - index + 50,
-        scale: 1,
         isCardFlipped: true
       };
     }
@@ -172,7 +184,7 @@ export const OwnerView: React.FC = () => {
     // stacked: 중앙에서 스택 형태로 정렬, 뒤집힌 상태 유지
     if (phase === 'stacked') {
       if (!cardPos) {
-        return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, scale: 1, isCardFlipped: true };
+        return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, isCardFlipped: true };
       }
 
       const offsetX = centerX - cardPos.x;
@@ -184,7 +196,6 @@ export const OwnerView: React.FC = () => {
         rotate: stackRotate,
         opacity: 1,
         zIndex: participants.length - index + 50,
-        scale: 1,
         isCardFlipped: true
       };
     }
@@ -197,7 +208,6 @@ export const OwnerView: React.FC = () => {
         rotate: 0,
         opacity: participantIsWinner ? 0 : 1,
         zIndex: 1,
-        scale: 1,
         isCardFlipped: true
       };
     }
@@ -210,17 +220,16 @@ export const OwnerView: React.FC = () => {
         rotate: 0,
         opacity: participantIsWinner ? 0 : 1,
         zIndex: 1,
-        scale: 1,
         isCardFlipped: false
       };
     }
 
     // dispersing: 원위치, 앞면
     if (phase === 'dispersing') {
-      return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, scale: 1, isCardFlipped: false };
+      return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, isCardFlipped: false };
     }
 
-    return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, scale: 1, isCardFlipped: false };
+    return { x: 0, y: 0, rotate: 0, opacity: 1, zIndex: 1, isCardFlipped: false };
   };
 
   const [isSharing, setIsSharing] = useState<boolean>(false);
@@ -297,7 +306,13 @@ export const OwnerView: React.FC = () => {
       />
 
       {/* Card Stack - Result Card only */}
-      <CardStack phase={phase} participantCount={participants.length} winners={winners} isFlipped={isFlipped} />
+      <CardStack
+        phase={phase}
+        participantCount={participants.length}
+        winners={winners}
+        isFlipped={isFlipped}
+        cardSize={capturedCardSize}
+      />
 
       <div className="w-full min-h-full flex flex-col items-center justify-center p-4 bg-linear-to-b from-background to-muted/20">
         <div className="w-full max-w-2xl flex flex-col gap-6">
@@ -363,7 +378,11 @@ export const OwnerView: React.FC = () => {
                 <p className="text-sm mt-2">링크를 공유해보세요!</p>
               </div>
             ) : (
-              <div className="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 md:grid-cols-4 sm:overflow-x-visible sm:pb-0">
+              <div
+                className={`flex gap-3 pb-2 sm:grid sm:grid-cols-3 md:grid-cols-4 sm:pb-0 ${
+                  phase === 'idle' ? 'overflow-x-auto sm:overflow-x-visible' : 'overflow-visible'
+                }`}
+              >
                 {participants.map((participant, index) => {
                   const animState = getCardAnimationState(participant.rid, participant.nickname, index);
 
@@ -371,13 +390,12 @@ export const OwnerView: React.FC = () => {
                     <motion.div
                       key={participant.rid}
                       ref={setCardRef(participant.rid)}
-                      className="shrink-0 w-32 aspect-4/5 sm:w-auto"
+                      className="shrink-0 w-48 aspect-4/5 sm:w-auto"
                       animate={{
                         x: animState.x,
                         y: animState.y,
                         rotate: animState.rotate,
-                        opacity: animState.opacity,
-                        scale: animState.scale
+                        opacity: animState.opacity
                       }}
                       style={{
                         zIndex: animState.zIndex

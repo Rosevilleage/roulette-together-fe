@@ -6,11 +6,12 @@ import PixelCard from '@/shared/ui/PixelCard';
 interface ResultCardProps {
   isFlipped: boolean;
   winners: Array<{ nickname: string; outcome: 'WIN' | 'LOSE' }>;
+  cardSize: { width: number; height: number };
 }
 
-export const ResultCard: React.FC<ResultCardProps> = ({ isFlipped, winners }) => {
+export const ResultCard: React.FC<ResultCardProps> = ({ isFlipped, winners, cardSize }) => {
   return (
-    <div className="relative w-32 aspect-4/5 sm:w-36" style={{ perspective: '1000px' }}>
+    <div className="relative" style={{ width: cardSize.width, height: cardSize.height, perspective: '1000px' }}>
       {/* Card container with 3D transform */}
       <motion.div
         className="relative w-full h-full"
@@ -38,16 +39,17 @@ export const ResultCard: React.FC<ResultCardProps> = ({ isFlipped, winners }) =>
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none p-2">
               <span className="text-2xl mb-1">🎉</span>
               <p className="text-sm font-bold text-foreground mb-2">당첨!</p>
-              <div className="w-full max-h-20 overflow-y-auto px-1">
+              <div className="w-full overflow-y-auto px-1 pointer-events-auto custom-scrollbar">
                 {winners.map((winner, index) => (
-                  <div
+                  <motion.div
                     key={winner.nickname}
-                    className={`text-xs text-foreground text-center py-1 ${
-                      index < winners.length - 1 ? 'border-b border-foreground/20' : ''
-                    }`}
+                    initial={{ scale: 0.7, opacity: 0 }}
+                    animate={isFlipped ? { scale: 1, opacity: 1 } : { scale: 0.7, opacity: 0 }}
+                    transition={{ duration: 0.2, delay: isFlipped ? 0.6 + index * 0.1 : 0 }}
+                    className="text-xs text-foreground text-center py-1 px-2 bg-background/80 rounded-md mb-1"
                   >
                     {winner.nickname}
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
