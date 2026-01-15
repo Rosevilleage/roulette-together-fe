@@ -39,11 +39,16 @@ export const RoomHeader: React.FC = () => {
   const [winSentiment, setWinSentiment] = useState<WinSentiment>(config?.winSentiment ?? 'POSITIVE');
 
   const handleLeaveRoom = (): void => {
-    if (!socket || !roomId) return;
+    setShowLeaveDialog(false);
+
+    // 소켓 연결이 없거나 끊긴 경우 바로 메인 페이지로 이동
+    if (!socket || !socket.connected || !roomId) {
+      window.location.replace('/');
+      return;
+    }
 
     const payload: RoomLeavePayload = { roomId };
     socket.emit(SOCKET_EVENTS.ROOM_LEAVE, payload);
-    setShowLeaveDialog(false);
   };
 
   const handleOpenConfigDialog = (): void => {
