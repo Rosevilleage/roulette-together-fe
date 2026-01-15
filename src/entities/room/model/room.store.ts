@@ -16,6 +16,7 @@ interface SpinState {
     nickname: string;
     outcome: 'WIN' | 'LOSE';
   }>;
+  animationDuration: number | null;
 }
 
 interface RoomStore {
@@ -55,7 +56,7 @@ interface RoomStore {
   setMyReady: (ready: boolean) => void;
   setOwnerPresent: (present: boolean) => void;
   updateMyNickname: (nickname: string) => void;
-  startSpin: (spinId: string) => void;
+  startSpin: (spinId: string, animationDuration?: number) => void;
   setMyOutcome: (outcome: 'WIN' | 'LOSE') => void;
   setAllOutcomes: (outcomes: Array<{ nickname: string; outcome: 'WIN' | 'LOSE' }>) => void;
   endSpin: () => void;
@@ -126,13 +127,14 @@ export const useRoomStore = create<RoomStore>(set => ({
       myNickname: nickname
     }),
 
-  startSpin: spinId =>
+  startSpin: (spinId, animationDuration) =>
     set({
       spin: {
         isSpinning: true,
         spinId,
         myOutcome: null,
-        allOutcomes: []
+        allOutcomes: [],
+        animationDuration: animationDuration ?? null
       }
     }),
 

@@ -243,7 +243,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
 
     const handleSpinResolved = (payload: SpinResolvedPayload): void => {
       console.log('[Spin] Resolved:', payload);
-      startSpin(payload.spinId);
+      startSpin(payload.spinId, payload.animation.durationMs);
       setConfig({
         winnersCount: payload.winnersCount,
         winSentiment: payload.winSentiment,
