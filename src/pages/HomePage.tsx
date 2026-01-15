@@ -39,7 +39,7 @@ export const HomePage: React.FC = () => {
             />
           </div>
           <p className="text-muted-foreground text-sm sm:text-base max-w-sm">
-            친구들과 함께 실시간으로 룰렛을 돌려보세요
+            친구들과 함께 실시간으로 랜덤 뽑기를 해보세요
           </p>
         </div>
 
@@ -96,7 +96,7 @@ export const HomePage: React.FC = () => {
             onClick={handleSoloRoulette}
           >
             <DicesIcon className="w-5 h-5" />
-            혼자 룰렛 돌리기
+            혼자 랜덤 뽑기
           </Button>
         </div>
       </div>

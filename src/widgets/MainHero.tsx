@@ -13,7 +13,7 @@ export const MainHero: React.FC = () => {
             </h1>
           </div>
           <p className="text-muted-foreground text-sm sm:text-base max-w-sm">
-            친구들과 함께 실시간으로 룰렛을 돌려보세요
+            친구들과 함께 실시간으로 랜덤 뽑기를 해보세요
           </p>
         </div>
 

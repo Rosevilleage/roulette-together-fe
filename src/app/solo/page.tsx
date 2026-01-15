@@ -83,8 +83,8 @@ export default function SoloPage(): ReactElement {
             <ArrowLeftIcon className="w-5 h-5" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold">혼자 룰렛 돌리기</h1>
-            <p className="text-xs text-muted-foreground">후보를 추가하고 룰렛을 돌려보세요</p>
+            <h1 className="text-xl font-bold">혼자 랜덤 뽑기</h1>
+            <p className="text-xs text-muted-foreground">후보를 추가하고 랜덤 뽑기를 해보세요</p>
           </div>
         </div>
       </div>
@@ -215,7 +215,7 @@ export default function SoloPage(): ReactElement {
                   ) : (
                     <div className="text-center space-y-2">
                       <span className="text-5xl">🎯</span>
-                      <p className="text-lg font-semibold text-foreground">룰렛 돌리기</p>
+                      <p className="text-lg font-semibold text-foreground">랜덤 뽑기</p>
                     </div>
                   )}
 

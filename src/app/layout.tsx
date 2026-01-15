@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: '룰렛 투게더 - 실시간 다인 룰렛',
-  description: '친구들과 함께 실시간으로 룰렛을 돌려보세요'
+  title: '룰렛 투게더 - 실시간 다인 랜덤 뽑기',
+  description: '친구들과 함께 실시간으로 랜덤 뽑기를 해보세요'
 };
 
 export default function RootLayout({

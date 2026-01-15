@@ -309,7 +309,7 @@ export const OwnerView: React.FC = () => {
       if (navigator.share) {
         await navigator.share({
           title: '룰렛 투게더 - 방 참가',
-          text: '룰렛 게임에 참가해보세요!',
+          text: '랜덤 뽑기 게임에 참가해보세요!',
           url: participantUrl
         });
       } else {
@@ -367,7 +367,7 @@ export const OwnerView: React.FC = () => {
             <Badge variant="default" className="mb-2">
               방장
             </Badge>
-            <h1 className="text-3xl font-bold mb-2">{myNickname}님의 룰렛 방</h1>
+            <h1 className="text-3xl font-bold mb-2">{myNickname}님의 랜덤 뽑기 방</h1>
             <p className="text-muted-foreground">참가자들이 모두 준비될 때까지 기다려주세요</p>
           </div>
 
@@ -379,7 +379,7 @@ export const OwnerView: React.FC = () => {
               disabled={!allReady || isSpinning || participants.length === 0 || phase !== 'idle'}
               className="w-full h-14 text-lg font-semibold"
             >
-              {isSpinning ? '룰렛 돌리는 중...' : allReady ? '🎯 룰렛 돌리기' : '모든 참가자가 준비해야 합니다'}
+              {isSpinning ? '뽑는 중...' : allReady ? '🎯 랜덤 뽑기' : '모든 참가자가 준비해야 합니다'}
             </Button>
 
             <div className="flex gap-2">

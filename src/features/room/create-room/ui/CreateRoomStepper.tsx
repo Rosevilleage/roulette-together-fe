@@ -114,8 +114,8 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
         <Step>
           <div className="space-y-4">
             <div className="space-y-2 text-center">
-              <h3 className="text-lg font-semibold">룰렛 설정</h3>
-              <p className="text-sm text-muted-foreground">룰렛의 당첨자 수와 당첨 감정을 설정해주세요</p>
+              <h3 className="text-lg font-semibold">랜덤 뽑기 설정</h3>
+              <p className="text-sm text-muted-foreground">랜덤 뽑기의 당첨자 수와 당첨 감정을 설정해주세요</p>
             </div>
 
             <div className="space-y-4">

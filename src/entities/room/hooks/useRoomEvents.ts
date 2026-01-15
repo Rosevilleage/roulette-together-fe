@@ -265,12 +265,12 @@ export const useRoomEvents = (socket: Socket | null): void => {
     const handleSpinRejected = (payload: SpinRejectedPayload): void => {
       console.error('[Spin] Rejected:', payload.reason);
       const messages: Record<string, string> = {
-        NOT_OWNER: '방장만 룰렛을 돌릴 수 있습니다',
-        ALREADY_SPINNING: '이미 룰렛이 진행 중입니다',
+        NOT_OWNER: '방장만 랜덤 뽑기를 할 수 있습니다',
+        ALREADY_SPINNING: '이미 랜덤 뽑기가 진행 중입니다',
         NO_MEMBERS: '참가자가 없습니다',
         NOT_ALL_READY: '모든 참가자가 준비 완료해야 합니다'
       };
-      toast.error(messages[payload.reason] || '룰렛 시작이 거부되었습니다', {
+      toast.error(messages[payload.reason] || '랜덤 뽑기 시작이 거부되었습니다', {
         duration: 3000
       });
     };

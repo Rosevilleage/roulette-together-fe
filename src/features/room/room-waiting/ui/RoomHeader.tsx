@@ -129,7 +129,7 @@ export const RoomHeader: React.FC = () => {
       <Dialog open={showConfigDialog} onOpenChange={setShowConfigDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>룰렛 설정</DialogTitle>
+            <DialogTitle>랜덤 뽑기 설정</DialogTitle>
             <DialogDescription>당첨자 수와 당첨 감정을 설정하세요.</DialogDescription>
           </DialogHeader>
 
