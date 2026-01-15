@@ -17,7 +17,9 @@
       "Bash(git checkout:*)",
       "Bash(git stash:*)",
       "Bash(node -e:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(timeout 15s pnpm dev:*)",
+      "Bash(timeout 20s pnpm dev:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

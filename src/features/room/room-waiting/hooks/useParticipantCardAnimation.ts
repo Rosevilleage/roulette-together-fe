@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import type { Variants } from 'motion/react';
 
 export type AnimationPhase =
   | 'idle'
@@ -13,12 +12,12 @@ export type AnimationPhase =
   | 'flip'
   | 'landed';
 
-// Animation timing constants (in ms)
-const FLYING_UP_DURATION = 600;
-const WAITING_MIN_DURATION = 1000;
-const LIGHT_BEAM_DURATION = 500;
-const DESCENDING_DURATION = 1200;
-const FLIP_DURATION = 600;
+// Animation timing constants (in ms) - exported for DOM animation hook
+export const FLYING_UP_DURATION = 600;
+export const WAITING_MIN_DURATION = 1000;
+export const LIGHT_BEAM_DURATION = 500;
+export const DESCENDING_DURATION = 1200;
+export const FLIP_DURATION = 600;
 
 interface UseParticipantCardAnimationParams {
   myReady: boolean;
@@ -36,10 +35,6 @@ interface UseParticipantCardAnimationReturn {
   isCardSpinning: boolean;
   hasAnswer: boolean;
   canClick: boolean;
-  // Animation variants
-  containerVariants: Variants;
-  frontVariants: Variants;
-  backVariants: Variants;
 }
 
 export const useParticipantCardAnimation = ({
@@ -183,50 +178,6 @@ export const useParticipantCardAnimation = ({
     }
   }, [phase, myReady]);
 
-  // Animation variants
-  const containerVariants: Variants = {
-    idle: { y: 0, opacity: 1, scale: 1 },
-    ready: { y: 0, opacity: 1, scale: 1 },
-    'flying-up': {
-      y: '-100vh',
-      opacity: 0,
-      scale: 0.8,
-      transition: { duration: 0.6, ease: 'easeIn' as const }
-    },
-    waiting: { y: '-100vh', opacity: 0 },
-    'light-beam': { y: '-100vh', opacity: 0 },
-    descending: {
-      y: 0,
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] as const }
-    },
-    flip: { y: 0, opacity: 1, scale: 1 },
-    landed: { y: 0, opacity: 1, scale: 1 }
-  };
-
-  const frontVariants: Variants = {
-    idle: { rotateY: 0 },
-    ready: { rotateY: 0 },
-    'flying-up': { rotateY: 0, transition: { duration: 0.6 } },
-    waiting: { rotateY: 180 },
-    'light-beam': { rotateY: 180 },
-    descending: { rotateY: 180, transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] as const } },
-    flip: { rotateY: 0, transition: { duration: 0.6, ease: 'easeOut' as const } },
-    landed: { rotateY: 0 }
-  };
-
-  const backVariants: Variants = {
-    idle: { rotateY: 180 },
-    ready: { rotateY: 180 },
-    'flying-up': { rotateY: 180, transition: { duration: 0.6 } },
-    waiting: { rotateY: 360 },
-    'light-beam': { rotateY: 360 },
-    descending: { rotateY: 360, transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] as const } },
-    flip: { rotateY: 180, transition: { duration: 0.6, ease: 'easeOut' as const } },
-    landed: { rotateY: 180 }
-  };
-
   return {
     phase,
     isBackdropDismissed,
@@ -235,9 +186,6 @@ export const useParticipantCardAnimation = ({
     showLightBeam,
     isCardSpinning,
     hasAnswer,
-    canClick,
-    containerVariants,
-    frontVariants,
-    backVariants
+    canClick
   };
 };

@@ -1,11 +1,11 @@
 'use client';
 
-import { motion } from 'motion/react';
 import { useRoomStore } from '@/entities/room/model/room.store';
 import { useSocket } from '@/shared/hooks/useSocket';
 import { Badge } from '@/shared/ui/Badge';
 import PixelCard from '@/shared/ui/PixelCard';
 import { useParticipantCardAnimation } from '@/features/room/room-waiting/hooks/useParticipantCardAnimation';
+import { useParticipantDomAnimation } from '@/features/room/room-waiting/hooks/useParticipantDomAnimation';
 import { ParticipantCardContent } from '@/features/room/room-waiting/ui/participant/ParticipantCardContent';
 import { NicknameEditor } from '@/features/room/room-waiting/ui/participant/NicknameEditor';
 import { AnimationOverlay } from '@/features/room/room-waiting/ui/participant/AnimationOverlay';
@@ -15,21 +15,14 @@ export const ParticipantView: React.FC = () => {
   const socket = useSocket();
   const { roomId, myNickname, myReady, roomTitle, spin } = useRoomStore();
 
-  const {
-    phase,
-    dismissBackdrop,
-    showBackdrop,
-    showLightBeam,
-    hasAnswer,
-    canClick,
-    containerVariants,
-    frontVariants,
-    backVariants
-  } = useParticipantCardAnimation({
+  const { phase, dismissBackdrop, showBackdrop, showLightBeam, hasAnswer, canClick } = useParticipantCardAnimation({
     myReady,
     isSpinning: spin?.isSpinning,
     myOutcome: spin?.myOutcome
   });
+
+  // DOM 애니메이션 훅
+  const { containerRef, frontRef, backRef } = useParticipantDomAnimation(phase);
 
   const isReady = phase === 'ready';
 
@@ -91,11 +84,13 @@ export const ParticipantView: React.FC = () => {
 
           {/* Ready Card (PixelCard) */}
           <div className="flex justify-center items-center" style={{ perspective: '1000px' }}>
-            <motion.div
-              variants={containerVariants}
-              animate={phase}
+            <div
+              ref={containerRef}
               onClick={handleToggleReady}
-              style={{ transformStyle: 'preserve-3d' }}
+              style={{
+                transformStyle: 'preserve-3d',
+                willChange: phase !== 'idle' && phase !== 'ready' ? 'transform, opacity' : 'auto'
+              }}
               className={`relative w-full p-1 max-w-[300px] aspect-4/5 z-50 ${
                 canClick ? 'cursor-pointer hover:scale-105 transition-transform' : 'cursor-default'
               }`}
@@ -134,25 +129,29 @@ export const ParticipantView: React.FC = () => {
               )}
 
               {/* 앞면 */}
-              <motion.div
-                variants={frontVariants}
-                animate={phase}
+              <div
+                ref={frontRef}
                 className={cn('absolute inset-0 bg-background rounded-[25px]', isReady && 'inset-0.5')}
-                style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+                style={{
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden'
+                }}
               >
                 <PixelCard variant={getCardVariant()} className={cn('w-full')} doAnimation={isReady || hasAnswer}>
                   <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
                     <ParticipantCardContent phase={phase} outcome={spin?.myOutcome} />
                   </div>
                 </PixelCard>
-              </motion.div>
+              </div>
 
               {/* 뒷면 */}
-              <motion.div
-                variants={backVariants}
-                animate={phase}
+              <div
+                ref={backRef}
                 className="absolute inset-0 bg-background rounded-[25px]"
-                style={{ backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden' }}
+                style={{
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden'
+                }}
               >
                 <PixelCard variant="default" className="w-full" doAnimation={false}>
                   <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
@@ -162,8 +161,8 @@ export const ParticipantView: React.FC = () => {
                     </div>
                   </div>
                 </PixelCard>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
