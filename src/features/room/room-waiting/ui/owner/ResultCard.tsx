@@ -2,14 +2,21 @@
 
 import { motion } from 'motion/react';
 import PixelCard from '@/shared/ui/PixelCard';
+import type { WinSentiment } from '@/entities/room/model/room.types';
 
 interface ResultCardProps {
   isFlipped: boolean;
   winners: Array<{ nickname: string; outcome: 'WIN' | 'LOSE' }>;
   cardSize: { width: number; height: number };
+  winSentiment: WinSentiment;
 }
 
-export const ResultCard: React.FC<ResultCardProps> = ({ isFlipped, winners, cardSize }) => {
+export const ResultCard: React.FC<ResultCardProps> = ({ isFlipped, winners, cardSize, winSentiment }) => {
+  const isPositive = winSentiment === 'POSITIVE';
+  const variant = isPositive ? 'yellow' : 'pink';
+  const emoji = isPositive ? '🎉' : '😱';
+  const label = isPositive ? '당첨!' : '걸렸다!';
+
   return (
     <div className="relative" style={{ width: cardSize.width, height: cardSize.height, perspective: '1000px' }}>
       {/* Card container with 3D transform */}
@@ -34,10 +41,10 @@ export const ResultCard: React.FC<ResultCardProps> = ({ isFlipped, winners, card
           className="absolute inset-0 bg-background rounded-[25px]"
           style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
         >
-          <PixelCard variant="yellow" doAnimation={isFlipped} className="h-full">
+          <PixelCard variant={variant} doAnimation={isFlipped} className="h-full">
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none p-2">
-              <span className="text-2xl mb-1">🎉</span>
-              <p className="text-sm font-bold text-foreground mb-2">당첨!</p>
+              <span className="text-2xl mb-1">{emoji}</span>
+              <p className="text-sm font-bold text-foreground mb-2">{label}</p>
               <div className="w-full overflow-y-auto px-1 pointer-events-auto custom-scrollbar">
                 {winners.map((winner, index) => (
                   <motion.div

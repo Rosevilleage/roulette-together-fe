@@ -99,7 +99,7 @@ const FlippableCard: React.FC<FlippableCardProps> = ({ nickname, ready, isFlippe
 
 export const OwnerView: React.FC = () => {
   const socket = useSocket();
-  const { roomId, myNickname, participants, readyCount, allReady } = useRoomStore();
+  const { roomId, myNickname, participants, readyCount, allReady, config } = useRoomStore();
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
 
   // Animation hooks
@@ -209,6 +209,7 @@ export const OwnerView: React.FC = () => {
         winners={winners}
         isFlipped={isFlipped}
         cardSize={cardSize}
+        winSentiment={config?.winSentiment ?? 'POSITIVE'}
       />
 
       <div className="w-full min-h-full flex flex-col items-center justify-center p-4 bg-linear-to-b from-background to-muted/20">

@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { ResultCard } from './ResultCard';
 import type { OwnerAnimationPhase } from '../../hooks/useOwnerCardAnimation';
+import type { WinSentiment } from '@/entities/room/model/room.types';
 
 interface CardStackProps {
   phase: OwnerAnimationPhase;
@@ -10,9 +11,17 @@ interface CardStackProps {
   winners: Array<{ nickname: string; outcome: 'WIN' | 'LOSE' }>;
   isFlipped: boolean;
   cardSize: { width: number; height: number } | null;
+  winSentiment: WinSentiment;
 }
 
-export const CardStack: React.FC<CardStackProps> = ({ phase, participantCount, winners, isFlipped, cardSize }) => {
+export const CardStack: React.FC<CardStackProps> = ({
+  phase,
+  participantCount,
+  winners,
+  isFlipped,
+  cardSize,
+  winSentiment
+}) => {
   // ResultCard는 stacked 이후부터 표시
   const isVisible = ['reveal-flip', 'result-shown', 'dispersing'].includes(phase);
 
@@ -35,7 +44,7 @@ export const CardStack: React.FC<CardStackProps> = ({ phase, participantCount, w
             exit={{ opacity: 0 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
           >
-            <ResultCard isFlipped={isFlipped} winners={winners} cardSize={cardSize} />
+            <ResultCard isFlipped={isFlipped} winners={winners} cardSize={cardSize} winSentiment={winSentiment} />
           </motion.div>
         </motion.div>
       )}
