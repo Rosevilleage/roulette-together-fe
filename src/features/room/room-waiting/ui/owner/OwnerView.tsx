@@ -45,7 +45,7 @@ const FlippableCard: React.FC<FlippableCardProps> = ({ nickname, ready, isFlippe
         >
           {/* 앞면 - 단순 배경 */}
           <div
-            className={`absolute inset-0 rounded-[25px] border border-[#27272a] ${ready ? 'bg-card' : 'bg-card'}`}
+            className={`absolute inset-0 rounded-[25px] border border-[#27272a] bg-background`}
             style={{ backfaceVisibility: 'hidden' }}
           >
             <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
@@ -79,7 +79,7 @@ const FlippableCard: React.FC<FlippableCardProps> = ({ nickname, ready, isFlippe
         style={{ transformStyle: 'preserve-3d' }}
       >
         {/* 앞면 - 참가자 정보 */}
-        <div className="absolute inset-0 bg-card rounded-[25px]" style={{ backfaceVisibility: 'hidden' }}>
+        <div className="absolute inset-0 bg-background rounded-[25px]" style={{ backfaceVisibility: 'hidden' }}>
           <PixelCard variant={ready ? 'blue' : 'default'} doAnimation={ready && !isFlipped} className="h-full">
             <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none p-2">
               <span className="text-3xl mb-2">{ready ? '✅' : '⏳'}</span>
