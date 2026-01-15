@@ -49,6 +49,11 @@ export const RoomHeader: React.FC = () => {
 
     const payload: RoomLeavePayload = { roomId };
     socket.emit(SOCKET_EVENTS.ROOM_LEAVE, payload);
+
+    // 타임아웃 폴백: 3초 내에 서버 응답 없으면 강제 이동
+    setTimeout(() => {
+      window.location.replace('/');
+    }, 3000);
   };
 
   const handleOpenConfigDialog = (): void => {
