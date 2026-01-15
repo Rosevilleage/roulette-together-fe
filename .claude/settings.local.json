@@ -19,7 +19,9 @@
       "Bash(node -e:*)",
       "Bash(grep:*)",
       "Bash(timeout 15s pnpm dev:*)",
-      "Bash(timeout 20s pnpm dev:*)"
+      "Bash(timeout 20s pnpm dev:*)",
+      "Skill(vercel-react-best-practices)",
+      "Skill(vercel-react-best-practices:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

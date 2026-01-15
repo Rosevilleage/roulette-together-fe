@@ -1,128 +1,48 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useRoomStore } from '@/entities/room/model/room.store';
 import { useSocket } from '@/shared/hooks/useSocket';
 import { Button } from '@/shared/ui/Button';
 import { Badge } from '@/shared/ui/Badge';
-import PixelCard from '@/shared/ui/PixelCard';
-import { ShareIcon, Users, Copy, Check } from 'lucide-react';
+import { Share2, Users } from 'lucide-react';
+import { ShareDialog } from '../ShareDialog';
 import { v4 as uuidv4 } from 'uuid';
 import { useOwnerCardAnimation } from '../../hooks/useOwnerCardAnimation';
 import { useCardDomAnimation } from '../../hooks/useCardDomAnimation';
 import { OwnerAnimationOverlay } from './OwnerAnimationOverlay';
 import { CardStack } from './CardStack';
-
-// 뒤집히는 참가자 카드 컴포넌트 (CSS 기반 플립)
-interface FlippableCardProps {
-  nickname: string;
-  ready: boolean;
-  isFlipped: boolean;
-  isAnimating: boolean;
-}
-
-const FlippableCard: React.FC<FlippableCardProps> = ({ nickname, ready, isFlipped, isAnimating }) => {
-  const shouldUseSimpleCard = isAnimating;
-
-  if (shouldUseSimpleCard) {
-    return (
-      <div className="w-full h-full" style={{ perspective: '1000px' }}>
-        <div
-          className="relative w-full h-full transition-transform duration-400 ease-out"
-          style={{
-            transformStyle: 'preserve-3d',
-            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
-          }}
-        >
-          {/* 앞면 - 단순 배경 */}
-          <div
-            className="absolute inset-0 rounded-[25px] border border-[#27272a] bg-background"
-            style={{ backfaceVisibility: 'hidden' }}
-          >
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
-              <span className="text-3xl mb-2">{ready ? '✅' : '⏳'}</span>
-              <p className="text-sm font-semibold text-foreground text-center truncate w-full px-2">{nickname}</p>
-              <p className="text-xs text-foreground/60 mt-1">{ready ? '준비 완료' : '대기 중'}</p>
-            </div>
-          </div>
-
-          {/* 뒷면 - 단순 배경 */}
-          <div
-            className="absolute inset-0 bg-card rounded-[25px] border border-[#27272a]"
-            style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-          >
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
-              <span className="text-4xl">?</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 일반 카드 (idle 상태) - PixelCard 사용
-  return (
-    <div className="w-full h-full" style={{ perspective: '1000px' }}>
-      <div
-        className="relative w-full h-full transition-transform duration-400 ease-out"
-        style={{
-          transformStyle: 'preserve-3d',
-          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
-        }}
-      >
-        {/* 앞면 - 참가자 정보 */}
-        <div className="absolute inset-0 bg-background rounded-[25px]" style={{ backfaceVisibility: 'hidden' }}>
-          <PixelCard variant={ready ? 'blue' : 'default'} doAnimation={ready && !isFlipped} className="h-full">
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none p-2">
-              <span className="text-3xl mb-2">{ready ? '✅' : '⏳'}</span>
-              <p className="text-sm font-semibold text-foreground text-center truncate w-full px-2">{nickname}</p>
-              <p className="text-xs text-foreground/60 mt-1">{ready ? '준비 완료' : '대기 중'}</p>
-            </div>
-          </PixelCard>
-        </div>
-
-        {/* 뒷면 - 물음표 */}
-        <div
-          className="absolute inset-0 bg-card rounded-[25px]"
-          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-        >
-          <PixelCard variant="default" doAnimation={false} className="h-full">
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none p-2">
-              <span className="text-4xl">?</span>
-            </div>
-          </PixelCard>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { FlippableCard } from './FlippableCard';
 
 export const OwnerView: React.FC = () => {
   const socket = useSocket();
   const { roomId, myNickname, participants, readyCount, allReady, config } = useRoomStore();
   const [isSpinning, setIsSpinning] = useState<boolean>(false);
+  const [showShareDialog, setShowShareDialog] = useState<boolean>(false);
 
   // Animation hooks
   const { phase, showBackdrop, showLightBeams, isFlipped, winners, dismissBackdrop } = useOwnerCardAnimation();
   const { setCardRef, getFirstCardSize, animatePhase } = useCardDomAnimation();
 
-  // 당첨자 닉네임 Set
-  const winnerNicknames = useMemo(() => {
-    return new Set(winners.map(w => w.nickname));
-  }, [winners]);
+  // 당첨자 닉네임 Set (js-set-map-lookups - O(1) 조회)
+  const winnerNicknames = useMemo(() => new Set(winners.map(w => w.nickname)), [winners]);
 
   // 카드 크기 상태 (CardStack에 전달)
   const [cardSize, setCardSize] = useState<{ width: number; height: number } | null>(null);
-
-  // 첫 카드 크기 캡처
   const hasCapturedRef = useRef(false);
+
+  // 카드 크기 캡처 (phase가 idle → gathering으로 변경될 때만 실행)
   useEffect(() => {
     if (phase === 'gathering' && !hasCapturedRef.current) {
-      const size = getFirstCardSize();
-      if (size) {
-        setCardSize(size);
-        hasCapturedRef.current = true;
-      }
+      // requestAnimationFrame으로 다음 프레임에 측정 (레이아웃 완료 후)
+      const rafId = requestAnimationFrame(() => {
+        const size = getFirstCardSize();
+        if (size) {
+          setCardSize(size);
+          hasCapturedRef.current = true;
+        }
+      });
+      return () => cancelAnimationFrame(rafId);
     }
     if (phase === 'idle') {
       hasCapturedRef.current = false;
@@ -136,48 +56,10 @@ export const OwnerView: React.FC = () => {
 
   // 카드가 뒤집혔는지 여부 (phase 기반)
   const isCardFlipped = phase === 'gathering' || phase === 'stacked' || phase === 'reveal-flip';
+  const isAnimating = phase !== 'idle';
 
-  const [isSharing, setIsSharing] = useState<boolean>(false);
-  const [isCopied, setIsCopied] = useState<boolean>(false);
-
-  const participantUrl =
-    typeof window !== 'undefined' ? `${window.location.origin}/room/${roomId}?role=participant` : '';
-
-  const handleCopyLink = async (): Promise<void> => {
-    if (isCopied) return;
-
-    try {
-      await navigator.clipboard.writeText(participantUrl);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-    } catch (err) {
-      console.error('Copy failed:', err);
-    }
-  };
-
-  const handleShareLink = async (): Promise<void> => {
-    if (isSharing) return;
-
-    setIsSharing(true);
-
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: '룰렛 투게더 - 방 참가',
-          text: '랜덤 뽑기 게임에 참가해보세요!',
-          url: participantUrl
-        });
-      } else {
-        await handleCopyLink();
-      }
-    } catch (err) {
-      console.error('Share failed:', err);
-    } finally {
-      setIsSharing(false);
-    }
-  };
-
-  const handleSpinRoulette = (): void => {
+  // 이벤트 핸들러 (rerender-functional-setstate - 안정적인 콜백)
+  const handleSpinRoulette = useCallback((): void => {
     if (!socket || !roomId || !allReady) return;
 
     const requestId = uuidv4();
@@ -187,11 +69,21 @@ export const OwnerView: React.FC = () => {
     setTimeout(() => {
       setIsSpinning(false);
     }, 5000);
-  };
+  }, [socket, roomId, allReady]);
 
-  const handleBackdropClick = (): void => {
+  const handleBackdropClick = useCallback((): void => {
     dismissBackdrop();
-  };
+  }, [dismissBackdrop]);
+
+  const handleOpenShareDialog = useCallback((): void => {
+    setShowShareDialog(true);
+  }, []);
+
+  // 버튼 비활성화 조건 (렌더링 최적화를 위해 미리 계산)
+  const isSpinDisabled = !allReady || isSpinning || participants.length === 0 || phase !== 'idle';
+
+  // 버튼 텍스트 결정
+  const spinButtonText = isSpinning ? '뽑는 중...' : allReady ? '🎯 랜덤 뽑기' : '모든 참가자가 준비해야 합니다';
 
   return (
     <>
@@ -228,34 +120,16 @@ export const OwnerView: React.FC = () => {
             <Button
               size="lg"
               onClick={handleSpinRoulette}
-              disabled={!allReady || isSpinning || participants.length === 0 || phase !== 'idle'}
+              disabled={isSpinDisabled}
               className="w-full h-14 text-lg font-semibold"
             >
-              {isSpinning ? '뽑는 중...' : allReady ? '🎯 랜덤 뽑기' : '모든 참가자가 준비해야 합니다'}
+              {spinButtonText}
             </Button>
 
-            <div className="flex gap-2">
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={handleCopyLink}
-                disabled={isCopied}
-                className="flex-1 h-12 gap-2"
-              >
-                {isCopied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                {isCopied ? '복사됨!' : '링크 복사'}
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={handleShareLink}
-                disabled={isSharing}
-                className="flex-1 h-12 gap-2"
-              >
-                <ShareIcon className="w-5 h-5" />
-                {isSharing ? '공유 중...' : '공유하기'}
-              </Button>
-            </div>
+            <Button size="lg" variant="outline" onClick={handleOpenShareDialog} className="w-full h-12 gap-2">
+              <Share2 className="w-5 h-5" />
+              공유하기
+            </Button>
           </div>
 
           {/* Participants List */}
@@ -270,6 +144,7 @@ export const OwnerView: React.FC = () => {
               </Badge>
             </div>
 
+            {/* 조건부 렌더링 개선 (rendering-conditional-render - ternary 사용) */}
             {participants.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>아직 참가자가 없습니다</p>
@@ -287,14 +162,14 @@ export const OwnerView: React.FC = () => {
                     ref={setCardRef(participant.rid)}
                     className="shrink-0 w-48 aspect-4/5 sm:w-auto"
                     style={{
-                      willChange: phase !== 'idle' ? 'transform, opacity' : 'auto'
+                      willChange: isAnimating ? 'transform, opacity' : 'auto'
                     }}
                   >
                     <FlippableCard
                       nickname={participant.nickname}
                       ready={participant.ready}
                       isFlipped={isCardFlipped}
-                      isAnimating={phase !== 'idle'}
+                      isAnimating={isAnimating}
                     />
                   </div>
                 ))}
@@ -303,6 +178,9 @@ export const OwnerView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Share Dialog - 조건부 렌더링 (rendering-conditional-render) */}
+      {roomId ? <ShareDialog open={showShareDialog} onOpenChange={setShowShareDialog} roomId={roomId} /> : null}
     </>
   );
 };
