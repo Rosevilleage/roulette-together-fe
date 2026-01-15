@@ -81,33 +81,41 @@ export const RoomHeader: React.FC = () => {
   return (
     <>
       <div className="bg-background/80 backdrop-blur-sm border-b">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold">{roomTitle || '룰렛 투게더'}</h1>
-            {roomId && <span className="text-xs text-muted-foreground">#{roomId.slice(-6)}</span>}
+        <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
+          {/* 좌측: 제목 - 모바일에서 축소 방지 */}
+          <div className="flex items-center gap-1.5 min-w-0 flex-shrink">
+            <h1 className="text-base sm:text-xl font-bold truncate">{roomTitle || '룰렛 투게더'}</h1>
+            {roomId && (
+              <span className="text-[10px] sm:text-xs text-muted-foreground flex-shrink-0">#{roomId.slice(-6)}</span>
+            )}
           </div>
 
-          {/* 룰렛 설정 표시 */}
-          <div className="flex items-center gap-3">
+          {/* 우측: 설정 + 나가기 버튼 - 축소 방지 */}
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
             {config && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <TrophyIcon className="w-4 h-4" />
+              <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                <div className="flex items-center gap-0.5 sm:gap-1">
+                  <TrophyIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span>{config.winnersCount}명</span>
                 </div>
-                <span className="text-muted-foreground/50">|</span>
-                <span>{config.winSentiment === 'POSITIVE' ? '긍정' : '부정'}</span>
+                <span className="text-muted-foreground/50 hidden sm:inline">|</span>
+                <span className="hidden sm:inline">{config.winSentiment === 'POSITIVE' ? '긍정' : '부정'}</span>
                 {isOwner && (
-                  <Button variant="ghost" size="icon-sm" onClick={handleOpenConfigDialog} className="ml-1">
-                    <SettingsIcon className="w-4 h-4" />
+                  <Button variant="ghost" size="icon-sm" onClick={handleOpenConfigDialog} className="ml-0.5 sm:ml-1">
+                    <SettingsIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </Button>
                 )}
               </div>
             )}
 
-            <Button variant="ghost" size="sm" className="gap-2" onClick={() => setShowLeaveDialog(true)}>
-              <LogOutIcon className="w-4 h-4" />
-              나가기
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-1 sm:gap-2 px-2 sm:px-3"
+              onClick={() => setShowLeaveDialog(true)}
+            >
+              <LogOutIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">나가기</span>
             </Button>
           </div>
         </div>
