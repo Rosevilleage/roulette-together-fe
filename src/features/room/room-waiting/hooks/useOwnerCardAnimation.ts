@@ -6,9 +6,20 @@ import { useRoomStore } from '@/entities/room/model/room.store';
 export type OwnerAnimationPhase = 'idle' | 'gathering' | 'stacked' | 'reveal-flip' | 'result-shown' | 'dispersing';
 
 // Animation timing constants (in ms)
-const GATHERING_DURATION = 600;
-const REVEAL_FLIP_DURATION = 600;
+// 참가자 타이밍과 동기화:
+// 참가자: flying-up(600) → waiting(1000) → light-beam(500) → descending(1200) → flip(600) = 3900ms
+// 방장: gathering(600) → stacked(waiting) → reveal-flip(600) → result-shown
+const GATHERING_DURATION = 600; // 참가자 flying-up과 동일
+const STACKED_MIN_DURATION = 1000; // 참가자 waiting과 동일
+const LIGHT_BEAM_DELAY = 500; // 참가자 light-beam과 동일 (reveal-flip 전 대기)
+const DESCENDING_DURATION = 1200; // 참가자 descending과 동일
+const REVEAL_FLIP_DURATION = 600; // 참가자 flip과 동일
 const DISPERSING_DURATION = 800;
+
+// 참가자와 동기화된 타이밍:
+// 참가자 결과 발표: waiting(1000) 후 light-beam(500) + descending(1200) + flip(600) = 3300ms
+// 방장 결과 발표: stacked 후 동일한 대기 시간
+const RESULT_DELAY_AFTER_STACKED = STACKED_MIN_DURATION + LIGHT_BEAM_DELAY + DESCENDING_DURATION;
 
 interface UseOwnerCardAnimationReturn {
   phase: OwnerAnimationPhase;
@@ -58,7 +69,6 @@ export const useOwnerCardAnimation = (): UseOwnerCardAnimationReturn => {
     const prevSpin = prevSpinRef.current;
     const isSpinning = spin?.isSpinning;
     const allOutcomes = spin?.allOutcomes ?? [];
-    const animationDuration = spin?.animationDuration ?? 3000;
 
     // Detect spin start - begin animation
     if (isSpinning && !prevSpin.isSpinning) {
@@ -80,7 +90,7 @@ export const useOwnerCardAnimation = (): UseOwnerCardAnimationReturn => {
     // Detect results received
     if (allOutcomes.length > 0 && (prevSpin.allOutcomes?.length ?? 0) === 0) {
       const waitingElapsed = waitingStartTimeRef.current ? Date.now() - waitingStartTimeRef.current : 0;
-      const remainingWaitTime = Math.max(0, animationDuration - waitingElapsed);
+      const remainingWaitTime = Math.max(0, RESULT_DELAY_AFTER_STACKED - waitingElapsed);
 
       if (phase === 'stacked') {
         clearAnimationTimeout();
@@ -97,7 +107,7 @@ export const useOwnerCardAnimation = (): UseOwnerCardAnimationReturn => {
           waitingStartTimeRef.current = Date.now();
           animationTimeoutRef.current = setTimeout(() => {
             processResult();
-          }, animationDuration);
+          }, RESULT_DELAY_AFTER_STACKED);
         }, gatheringRemaining);
       }
     }
