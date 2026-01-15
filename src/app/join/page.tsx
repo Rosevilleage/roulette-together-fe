@@ -128,7 +128,7 @@ export default function JoinPage(): ReactElement {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-8 w-8 opacity-50 hover:opacity-100 transition-opacity"
                   onClick={e => handleRemoveVisitedRoom(room.roomId, e)}
                 >
                   <TrashIcon className="w-4 h-4 text-muted-foreground hover:text-destructive" />
