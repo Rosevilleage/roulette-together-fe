@@ -26,9 +26,50 @@ interface FlippableCardProps {
   nickname: string;
   ready: boolean;
   isFlipped: boolean;
+  isAnimating: boolean; // 애니메이션 중인지 (gathering/stacked 등)
 }
 
-const FlippableCard: React.FC<FlippableCardProps> = ({ nickname, ready, isFlipped }) => {
+const FlippableCard: React.FC<FlippableCardProps> = ({ nickname, ready, isFlipped, isAnimating }) => {
+  // 애니메이션 중에는 PixelCard 대신 단순 배경 사용 (성능 최적화)
+  const shouldUseSimpleCard = isAnimating;
+
+  // 단순 카드 (애니메이션 중)
+  if (shouldUseSimpleCard) {
+    return (
+      <div className="w-full h-full" style={{ perspective: '1000px' }}>
+        <motion.div
+          className="relative w-full h-full"
+          animate={{ rotateY: isFlipped ? 180 : 0 }}
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          style={{ transformStyle: 'preserve-3d' }}
+        >
+          {/* 앞면 - 단순 배경 */}
+          <div
+            className={`absolute inset-0 rounded-[25px] border border-[#27272a] ${ready ? 'bg-card' : 'bg-card'}`}
+            style={{ backfaceVisibility: 'hidden' }}
+          >
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
+              <span className="text-3xl mb-2">{ready ? '✅' : '⏳'}</span>
+              <p className="text-sm font-semibold text-foreground text-center truncate w-full px-2">{nickname}</p>
+              <p className="text-xs text-foreground/60 mt-1">{ready ? '준비 완료' : '대기 중'}</p>
+            </div>
+          </div>
+
+          {/* 뒷면 - 단순 배경 */}
+          <div
+            className="absolute inset-0 bg-card rounded-[25px] border border-[#27272a]"
+            style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+          >
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
+              <span className="text-4xl">?</span>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // 일반 카드 (idle 상태) - PixelCard 사용
   return (
     <div className="w-full h-full" style={{ perspective: '1000px' }}>
       <motion.div
@@ -86,26 +127,31 @@ export const OwnerView: React.FC = () => {
     return new Set(winners.map(w => w.nickname));
   }, [winners]);
 
-  // gathering 시작 시 카드 위치 및 크기 캡처
+  // gathering 시작 시 카드 위치 및 크기 캡처 (배치 처리로 reflow 최소화)
   useLayoutEffect(() => {
     if (phase === 'gathering') {
+      // 모든 rect를 먼저 한 번에 읽기 (읽기 작업 배치)
+      const rects = new Map<string, DOMRect>();
+      cardRefsMap.current.forEach((el, rid) => {
+        if (el) {
+          rects.set(rid, el.getBoundingClientRect());
+        }
+      });
+
+      // 읽기 완료 후 상태 업데이트 (쓰기 작업 분리)
       const positions = new Map<string, CardPosition>();
       let firstCardSize: { width: number; height: number } | null = null;
 
-      cardRefsMap.current.forEach((el, rid) => {
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          positions.set(rid, {
-            x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2,
-            width: rect.width,
-            height: rect.height
-          });
+      rects.forEach((rect, rid) => {
+        positions.set(rid, {
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+          width: rect.width,
+          height: rect.height
+        });
 
-          // 첫 번째 카드 크기 캡처
-          if (!firstCardSize) {
-            firstCardSize = { width: rect.width, height: rect.height };
-          }
+        if (!firstCardSize) {
+          firstCardSize = { width: rect.width, height: rect.height };
         }
       });
 
@@ -398,7 +444,10 @@ export const OwnerView: React.FC = () => {
                         opacity: animState.opacity
                       }}
                       style={{
-                        zIndex: animState.zIndex
+                        zIndex: animState.zIndex,
+                        // GPU 레이어 강제 생성 및 will-change 최적화
+                        willChange: phase !== 'idle' ? 'transform, opacity' : 'auto',
+                        transform: 'translateZ(0)'
                       }}
                       transition={{
                         duration: phase === 'gathering' ? 0.5 : 0.6,
@@ -410,6 +459,7 @@ export const OwnerView: React.FC = () => {
                         nickname={participant.nickname}
                         ready={participant.ready}
                         isFlipped={animState.isCardFlipped}
+                        isAnimating={phase !== 'idle'}
                       />
                     </motion.div>
                   );

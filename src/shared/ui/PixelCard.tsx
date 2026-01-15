@@ -1,5 +1,25 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { JSX } from 'react';
+
+// 디바이스 성능 감지 유틸리티
+const getDevicePerformanceLevel = (): 'low' | 'medium' | 'high' => {
+  if (typeof window === 'undefined') return 'medium';
+
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const cores = navigator.hardwareConcurrency || 4;
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory || 4;
+
+  if (isMobile || cores <= 4 || memory <= 4) return 'low';
+  if (cores <= 8 || memory <= 8) return 'medium';
+  return 'high';
+};
+
+// 성능 레벨에 따른 gap 배율
+const GAP_MULTIPLIERS: Record<'low' | 'medium' | 'high', number> = {
+  low: 2.0, // 모바일/저사양: gap 2배 (픽셀 수 75% 감소)
+  medium: 1.5, // 중간: gap 1.5배 (픽셀 수 56% 감소)
+  high: 1.0 // 고사양: 원본 유지
+};
 
 class Pixel {
   width: number;
@@ -187,10 +207,17 @@ export default function PixelCard({
   ).current;
 
   const variantCfg: VariantConfig = VARIANTS[variant] || VARIANTS.default;
-  const finalGap = gap ?? variantCfg.gap;
+  const baseGap = gap ?? variantCfg.gap;
   const finalSpeed = speed ?? variantCfg.speed;
   const finalColors = colors ?? variantCfg.colors;
   const finalNoFocus = noFocus ?? variantCfg.noFocus;
+
+  // 디바이스 성능에 따라 gap 동적 조절
+  const performanceLevel = useMemo(() => getDevicePerformanceLevel(), []);
+  const finalGap = useMemo(() => {
+    const multiplier = GAP_MULTIPLIERS[performanceLevel];
+    return Math.round(baseGap * multiplier);
+  }, [baseGap, performanceLevel]);
 
   const initPixels = () => {
     if (!containerRef.current || !canvasRef.current) return;
@@ -220,14 +247,29 @@ export default function PixelCard({
     pixelsRef.current = pxs;
   };
 
+  // 프레임 카운터 (저사양 기기에서 프레임 스킵용)
+  const frameCountRef = useRef(0);
+
   const doAnimate = (fnName: keyof Pixel) => {
     animationRef.current = requestAnimationFrame(() => doAnimate(fnName));
     const timeNow = performance.now();
     const timePassed = timeNow - timePreviousRef.current;
-    const timeInterval = 1000 / 60;
+
+    // 저사양 기기에서는 30fps로 제한 (프레임 스킵)
+    const targetFps = performanceLevel === 'low' ? 30 : 60;
+    const timeInterval = 1000 / targetFps;
 
     if (timePassed < timeInterval) return;
     timePreviousRef.current = timeNow - (timePassed % timeInterval);
+
+    // 추가 프레임 스킵: 저사양에서 shimmer 단계일 때 2프레임마다 실행
+    frameCountRef.current++;
+    if (performanceLevel === 'low' && fnName === 'appear') {
+      const hasShimmeringPixels = pixelsRef.current.some(p => p.isShimmer);
+      if (hasShimmeringPixels && frameCountRef.current % 2 !== 0) {
+        return;
+      }
+    }
 
     const ctx = canvasRef.current?.getContext('2d');
     if (!ctx || !canvasRef.current) return;
@@ -235,14 +277,25 @@ export default function PixelCard({
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
     let allIdle = true;
-    for (let i = 0; i < pixelsRef.current.length; i++) {
-      const pixel = pixelsRef.current[i];
+    const pixels = pixelsRef.current;
+    const pixelCount = pixels.length;
+
+    for (let i = 0; i < pixelCount; i++) {
+      const pixel = pixels[i];
+
+      // Idle 상태인 픽셀은 스킵 (disappear 애니메이션 시)
+      if (pixel.isIdle && fnName === 'disappear') {
+        continue;
+      }
+
       // @ts-expect-error - Dynamic method call based on animation state
       pixel[fnName]();
+
       if (!pixel.isIdle) {
         allIdle = false;
       }
     }
+
     if (allIdle) {
       cancelAnimationFrame(animationRef.current);
     }

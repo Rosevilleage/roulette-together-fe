@@ -1,5 +1,18 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import { Renderer, Program, Triangle, Mesh } from 'ogl';
+
+// 디바이스 성능 감지 (PixelCard와 동일한 로직)
+const getDevicePerformanceLevel = (): 'low' | 'medium' | 'high' => {
+  if (typeof window === 'undefined') return 'medium';
+
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  const cores = navigator.hardwareConcurrency || 4;
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory || 4;
+
+  if (isMobile || cores <= 4 || memory <= 4) return 'low';
+  if (cores <= 8 || memory <= 8) return 'medium';
+  return 'high';
+};
 
 export type RaysOrigin =
   | 'top-center'
@@ -106,6 +119,17 @@ const LightRays: React.FC<LightRaysProps> = ({
   const cleanupFunctionRef = useRef<(() => void) | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const frameCountRef = useRef(0);
+
+  // 성능 레벨에 따른 설정
+  const performanceLevel = useMemo(() => getDevicePerformanceLevel(), []);
+  const targetDpr = useMemo(() => {
+    // 저사양: DPR 1, 중간: DPR 1.5, 고사양: 최대 2
+    if (performanceLevel === 'low') return 1;
+    if (performanceLevel === 'medium') return Math.min(window.devicePixelRatio, 1.5);
+    return Math.min(window.devicePixelRatio, 2);
+  }, [performanceLevel]);
+  const frameSkip = performanceLevel === 'low' ? 2 : 1; // 저사양에서 2프레임마다 렌더링
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -144,7 +168,7 @@ const LightRays: React.FC<LightRaysProps> = ({
       if (!containerRef.current) return;
 
       const renderer = new Renderer({
-        dpr: Math.min(window.devicePixelRatio, 2),
+        dpr: targetDpr,
         alpha: true
       });
       rendererRef.current = renderer;
@@ -293,7 +317,7 @@ void main() {
       const updatePlacement = () => {
         if (!containerRef.current || !renderer) return;
 
-        renderer.dpr = Math.min(window.devicePixelRatio, 2);
+        renderer.dpr = targetDpr;
 
         const { clientWidth: wCSS, clientHeight: hCSS } = containerRef.current;
         renderer.setSize(wCSS, hCSS);
@@ -311,6 +335,13 @@ void main() {
 
       const loop = (t: number) => {
         if (!rendererRef.current || !uniformsRef.current || !meshRef.current) {
+          return;
+        }
+
+        // 프레임 스킵 적용 (저사양에서 2프레임마다 렌더링)
+        frameCountRef.current++;
+        if (frameCountRef.current % frameSkip !== 0) {
+          animationIdRef.current = requestAnimationFrame(loop);
           return;
         }
 
@@ -389,7 +420,9 @@ void main() {
     followMouse,
     mouseInfluence,
     noiseAmount,
-    distortion
+    distortion,
+    targetDpr,
+    frameSkip
   ]);
 
   useEffect(() => {
