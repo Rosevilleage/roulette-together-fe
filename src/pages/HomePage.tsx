@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogTrigger } from '@/shared/ui/Dialog';
 import { CreateRoomStepper } from '@/features/room/create-room/ui/CreateRoomStepper';
 import { RoomList } from '@/features/room/create-room/ui/RoomList';
 import { PlusIcon, QrCodeIcon, DicesIcon } from 'lucide-react';
+import { InteractiveCardDeck } from '@/shared/ui/InteractiveCardDeck';
 import Shuffle from '@/shared/ui/Shuffle';
 
 export const HomePage: React.FC = () => {
@@ -25,32 +26,36 @@ export const HomePage: React.FC = () => {
         <div className="flex flex-col items-center gap-4 text-center">
           <div className="relative">
             <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full animate-pulse" />
-            <Shuffle
-              text="룰렛 투게더"
-              tag="h1"
-              className="normal-case! relative text-5xl sm:text-6xl font-bold **:bg-linear-to-r! **:from-primary! **:to-primary/60! **:bg-clip-text! **:text-transparent!"
-              shuffleDirection="right"
-              duration={0.5}
-              stagger={0.05}
-              triggerOnce={false}
-              loop={false}
-              triggerOnHover={true}
-              textAlign="center"
-            />
+            <div className="relative flex items-center gap-2">
+              <Shuffle
+                text="당첨?"
+                tag="h1"
+                className="normal-case! text-5xl sm:text-6xl font-bold **:bg-linear-to-r! **:from-primary! **:to-primary/60! **:bg-clip-text! **:text-transparent!"
+                shuffleDirection="right"
+                duration={0.5}
+                stagger={0.05}
+                triggerOnHover={true}
+              />
+              <span className="text-4xl sm:text-5xl">😱</span>
+              <Shuffle
+                text="당첨!"
+                tag="h1"
+                className="normal-case! text-5xl sm:text-6xl font-bold **:bg-linear-to-r! **:from-primary/60! **:to-primary! **:bg-clip-text! **:text-transparent!"
+                shuffleDirection="left"
+                duration={0.5}
+                stagger={0.05}
+                triggerOnHover={true}
+              />
+              <span className="text-4xl sm:text-5xl">🎉</span>
+            </div>
           </div>
           <p className="text-muted-foreground text-sm sm:text-base max-w-sm">
             친구들과 함께 실시간으로 랜덤 뽑기를 해보세요
           </p>
         </div>
 
-        {/* Decorative Roulette Icon */}
-        <div className="relative w-32 h-32 sm:w-40 sm:h-40">
-          <div className="absolute inset-0 border-8 border-primary/20 rounded-full animate-spin-slow" />
-          <div className="absolute inset-4 border-4 border-primary/40 rounded-full animate-spin-reverse-slow" />
-          <div className="absolute inset-8 bg-linear-to-br from-primary to-primary/60 rounded-full flex items-center justify-center">
-            <span className="text-4xl">🎯</span>
-          </div>
-        </div>
+        {/* Interactive Card Deck */}
+        <InteractiveCardDeck size={1.2} />
 
         {/* Room List */}
         <div className="w-full">

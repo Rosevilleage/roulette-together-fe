@@ -17,13 +17,42 @@ export const MainHero: React.FC = () => {
           </p>
         </div>
 
-        {/* Decorative Roulette Icon */}
-        <div className="relative w-32 h-32 sm:w-40 sm:h-40">
-          <div className="absolute inset-0 border-8 border-primary/20 rounded-full animate-spin-slow" />
-          <div className="absolute inset-4 border-4 border-primary/40 rounded-full animate-spin-reverse-slow" />
-          <div className="absolute inset-8 bg-linear-to-br from-primary to-primary/60 rounded-full flex items-center justify-center">
-            <span className="text-4xl">🎯</span>
-          </div>
+        {/* Decorative Gacha Machine Icon */}
+        <div className="relative w-40 h-48 sm:w-48 sm:h-56">
+          <svg
+            viewBox="0 0 120 150"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full h-full drop-shadow-lg"
+          >
+            {/* Machine Body */}
+            <rect x="15" y="50" width="90" height="90" rx="8" className="fill-primary/90" />
+            {/* Machine Top Dome */}
+            <ellipse cx="60" cy="50" rx="45" ry="20" className="fill-primary" />
+            {/* Glass Globe */}
+            <circle cx="60" cy="40" r="32" className="fill-background/80 stroke-primary/60" strokeWidth="3" />
+            {/* Balls inside */}
+            <circle cx="48" cy="35" r="8" className="fill-red-400 animate-pulse" />
+            <circle cx="68" cy="32" r="7" className="fill-yellow-400" />
+            <circle cx="55" cy="48" r="6" className="fill-blue-400" />
+            <circle cx="72" cy="45" r="7" className="fill-green-400 animate-pulse" />
+            <circle cx="45" cy="50" r="5" className="fill-purple-400" />
+            <circle cx="62" cy="55" r="6" className="fill-pink-400" />
+            {/* Dispenser Hole */}
+            <rect x="45" y="100" width="30" height="20" rx="4" className="fill-background/90" />
+            {/* Coin Slot */}
+            <rect x="80" y="70" width="15" height="4" rx="2" className="fill-yellow-500" />
+            {/* Handle/Knob */}
+            <circle cx="95" cy="85" r="8" className="fill-primary/70 stroke-primary" strokeWidth="2" />
+            <circle cx="95" cy="85" r="4" className="fill-background" />
+            {/* Base */}
+            <rect x="10" y="140" width="100" height="10" rx="4" className="fill-primary/80" />
+            {/* Legs */}
+            <rect x="20" y="130" width="10" height="15" rx="2" className="fill-primary/70" />
+            <rect x="90" y="130" width="10" height="15" rx="2" className="fill-primary/70" />
+            {/* Shine effect on globe */}
+            <ellipse cx="48" cy="28" rx="8" ry="4" className="fill-white/40" />
+          </svg>
         </div>
 
         {/* Form Section */}
