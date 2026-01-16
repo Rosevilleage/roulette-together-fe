@@ -83,15 +83,15 @@ export const RoomHeader: React.FC = () => {
       <div className="bg-background/80 backdrop-blur-sm border-b">
         <div className="container mx-auto px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
           {/* 좌측: 제목 - 모바일에서 축소 방지 */}
-          <div className="flex items-center gap-1.5 min-w-0 flex-shrink">
+          <div className="flex items-center gap-1.5 min-w-0 shrink-0">
             <h1 className="text-base sm:text-xl font-bold truncate">{roomTitle || '룰렛 투게더'}</h1>
             {roomId && (
-              <span className="text-[10px] sm:text-xs text-muted-foreground flex-shrink-0">#{roomId.slice(-6)}</span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground shrink-0">#{roomId.slice(-6)}</span>
             )}
           </div>
 
           {/* 우측: 설정 + 나가기 버튼 - 축소 방지 */}
-          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             {config && (
               <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
                 <div className="flex items-center gap-0.5 sm:gap-1">
