@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3001';
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080';
 
 // Global socket instance - shared across all components (client-side only)
 let globalSocket: Socket | null = null;

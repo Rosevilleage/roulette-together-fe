@@ -1,7 +1,5 @@
 import type { CreateRoomResponse, CreateRoomRequest, GetRoomsResponse } from '../model/room.types';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-const API_BASE_URL = `${API_URL}/v1`;
+import { apiClient } from '@/shared/api/client';
 
 /**
  * Create a new room
@@ -9,20 +7,8 @@ const API_BASE_URL = `${API_URL}/v1`;
  * @returns Room information including roomId, tokens, and URLs
  */
 export async function createRoom(request: CreateRoomRequest = {}): Promise<CreateRoomResponse> {
-  const response = await fetch(`${API_BASE_URL}/rooms`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    credentials: 'include', // 쿠키 전송을 위해 필수
-    body: JSON.stringify(request)
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to create room: ${response.statusText}`);
-  }
-
-  return response.json();
+  const response = await apiClient.post<CreateRoomResponse>('/rooms', request);
+  return response.data;
 }
 
 /**
@@ -30,14 +16,6 @@ export async function createRoom(request: CreateRoomRequest = {}): Promise<Creat
  * @returns List of active rooms
  */
 export async function getRooms(): Promise<GetRoomsResponse> {
-  const response = await fetch(`${API_BASE_URL}/rooms`, {
-    method: 'GET',
-    credentials: 'include' // 쿠키 전송을 위해 필수
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to get rooms: ${response.statusText}`);
-  }
-
-  return response.json();
+  const response = await apiClient.get<GetRoomsResponse>('/rooms');
+  return response.data;
 }

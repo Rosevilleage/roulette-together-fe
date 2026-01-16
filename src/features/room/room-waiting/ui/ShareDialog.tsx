@@ -23,7 +23,7 @@ export const ShareDialog: React.FC<ShareDialogProps> = ({ open, onOpenChange, ro
   const [copied, setCopied] = useState(false);
   const [canShare] = useState(getCanShare);
 
-  const shareUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/room/${roomId}?role=participant`;
+  const shareUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'}/room/${roomId}?role=participant`;
 
   const handleCopy = useCallback(async (): Promise<void> => {
     try {
