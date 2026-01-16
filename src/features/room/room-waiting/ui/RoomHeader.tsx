@@ -128,9 +128,9 @@ export const RoomHeader: React.FC = () => {
             <AlertDialogTitle>방을 나가시겠습니까?</AlertDialogTitle>
             <AlertDialogDescription>
               {isOwner ? (
-                <p className="text-sm text-muted-foreground bg-muted/50 rounded-md p-2">
+                <span className="block text-sm text-muted-foreground bg-muted/50 rounded-md p-2">
                   방장이 나가도 참가자들은 대기 상태로 유지됩니다. 30분 이내에 다시 입장할 수 있습니다.
-                </p>
+                </span>
               ) : (
                 '방이 닫히기 전까지는 다시 접속할 수 있습니다.'
               )}
