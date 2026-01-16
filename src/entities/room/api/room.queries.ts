@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/shared/api/client';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
 import type { CreateRoomRequest, CreateRoomResponse, GetRoomsResponse } from '../model/room.types';
 
 export const roomKeys = {
@@ -39,8 +41,12 @@ export function useCreateRoomMutation() {
       // 방 목록 캐시 무효화
       void queryClient.invalidateQueries({ queryKey: roomKeys.lists() });
     },
-    onError: error => {
+    onError: (error: AxiosError) => {
       console.error('방 생성 실패:', error);
+
+      if (error.response?.status === 429) {
+        toast.error('방을 생성할 수 없습니다. 1분 뒤 다시 시도해주세요.');
+      }
     }
   });
 }
