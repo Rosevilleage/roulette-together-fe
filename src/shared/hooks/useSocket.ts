@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3001';
 
-// Global socket instance - shared across all components
+// Global socket instance - shared across all components (client-side only)
 let globalSocket: Socket | null = null;
+const listeners: Set<() => void> = new Set();
 
 function getOrCreateSocket(): Socket {
   if (!globalSocket) {
@@ -18,6 +19,22 @@ function getOrCreateSocket(): Socket {
     });
 
     console.log('[Socket] Created new socket instance (not connected yet)');
+
+    // 연결 상태 변경 시 모든 구독자에게 알림
+    globalSocket.on('connect', () => {
+      console.log('[Socket] Connected:', globalSocket?.id);
+      listeners.forEach(listener => listener());
+    });
+
+    globalSocket.on('disconnect', reason => {
+      console.log('[Socket] Disconnected:', reason);
+      listeners.forEach(listener => listener());
+    });
+
+    globalSocket.on('connect_error', error => {
+      console.error('[Socket] Connection error:', error);
+      console.error('[Socket] WS_URL:', WS_URL);
+    });
   }
 
   // Always ensure socket is connected
@@ -29,58 +46,41 @@ function getOrCreateSocket(): Socket {
   return globalSocket;
 }
 
+// useSyncExternalStore를 위한 함수들
+function subscribe(callback: () => void): () => void {
+  listeners.add(callback);
+  return () => {
+    listeners.delete(callback);
+  };
+}
+
+function getSnapshot(): Socket | null {
+  // 클라이언트에서 소켓이 없으면 생성
+  if (typeof window !== 'undefined' && !globalSocket) {
+    getOrCreateSocket();
+  }
+  return globalSocket;
+}
+
+function getServerSnapshot(): Socket | null {
+  // 서버에서는 항상 null 반환
+  return null;
+}
+
 /**
  * Hook to manage Socket.IO connection
+ * Hydration-safe: uses useSyncExternalStore for consistent SSR/CSR behavior
  * @returns Socket instance or null if not connected
  */
 export const useSocket = (): Socket | null => {
-  const [socket] = useState<Socket>(() => getOrCreateSocket());
-  const [, setConnected] = useState<boolean>(false);
+  const socket = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
+  // 컴포넌트 마운트 시 소켓 연결 보장
   useEffect(() => {
-    // Connection event handlers
-    const handleConnect = (): void => {
-      console.log('[Socket] Connected:', socket.id);
-      setConnected(true);
-    };
-
-    const handleDisconnect = (reason: string): void => {
-      console.log('[Socket] Disconnected:', reason);
-      setConnected(false);
-    };
-
-    const handleConnectError = (error: Error): void => {
-      console.error('[Socket] Connection error:', error);
-      console.error('[Socket] WS_URL:', WS_URL);
-    };
-
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
-    socket.on('connect_error', handleConnectError);
-
-    // If socket is already connected, trigger via setTimeout to avoid direct setState in effect
-    if (socket.connected) {
-      // Use setTimeout to defer the state update
-      const timer = setTimeout(() => {
-        setConnected(true);
-      }, 0);
-
-      // Cleanup - only remove listeners
-      return () => {
-        clearTimeout(timer);
-        socket.off('connect', handleConnect);
-        socket.off('disconnect', handleDisconnect);
-        socket.off('connect_error', handleConnectError);
-      };
+    if (typeof window !== 'undefined' && !globalSocket) {
+      getOrCreateSocket();
     }
-
-    // Cleanup - only remove listeners
-    return () => {
-      socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
-      socket.off('connect_error', handleConnectError);
-    };
-  }, [socket]);
+  }, []);
 
   return socket;
 };

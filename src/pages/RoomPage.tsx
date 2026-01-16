@@ -182,22 +182,24 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
     socket?.connected && role === 'participant' && !nickname.trim() && !myNickname
   );
 
-  // 로딩 UI (SSR/CSR 일관된 구조 유지)
-  if (!socket || !socket.connected) {
-    return (
-      <div className="min-h-dvh flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
-          <p className="text-muted-foreground mb-2">서버에 연결하는 중...</p>
-        </div>
-      </div>
-    );
-  }
+  const isConnected = socket?.connected ?? false;
 
+  // 로딩 UI와 메인 UI를 동일한 구조로 렌더링하여 hydration 불일치 방지
   return (
     <div className="h-full w-full">
-      <RoomWaiting />
-      <NicknameInputDialog open={shouldShowNicknameDialog} onSubmit={handleNicknameSubmit} />
+      {isConnected ? (
+        <>
+          <RoomWaiting />
+          <NicknameInputDialog open={shouldShowNicknameDialog} onSubmit={handleNicknameSubmit} />
+        </>
+      ) : (
+        <div className="min-h-dvh flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+            <p className="text-muted-foreground mb-2">서버에 연결하는 중...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
