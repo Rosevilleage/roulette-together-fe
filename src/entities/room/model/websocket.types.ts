@@ -40,6 +40,10 @@ export interface RoomLeavePayload {
   roomId: string;
 }
 
+export interface RoomDeletePayload {
+  roomId: string;
+}
+
 // ============================================
 // Server → Client Events
 // ============================================
@@ -56,7 +60,14 @@ export interface RoomJoinedPayload {
 }
 
 export interface RoomJoinRejectedPayload {
-  reason: 'OWNER_ALREADY_EXISTS' | 'INVALID_REQUEST' | 'INVALID_RID' | 'MISSING_OWNER_TOKEN' | 'INVALID_OWNER_TOKEN';
+  reason:
+    | 'OWNER_ALREADY_EXISTS'
+    | 'INVALID_REQUEST'
+    | 'INVALID_RID'
+    | 'MISSING_OWNER_TOKEN'
+    | 'INVALID_OWNER_TOKEN'
+    | 'INVALID_OWNER_RID'
+    | 'ROOM_NOT_FOUND';
 }
 
 export interface RoomConfigPayload {
@@ -165,6 +176,16 @@ export interface RoomClosedPayload {
   closedAt: number;
 }
 
+export interface RoomDeletedPayload {
+  roomId: string;
+  deletedAt: number;
+}
+
+export interface RoomDeleteRejectedPayload {
+  roomId: string;
+  reason: 'NOT_OWNER' | 'INVALID_RID' | 'INTERNAL_ERROR';
+}
+
 export interface RoomOwnerLeftPayload {
   roomId: string;
   leftAt: number;
@@ -182,6 +203,7 @@ export const SOCKET_EVENTS = {
   PARTICIPANT_READY_TOGGLE: 'participant:ready:toggle',
   PARTICIPANT_NICKNAME_CHANGE: 'participant:nickname:change',
   ROOM_LEAVE: 'room:leave',
+  ROOM_DELETE: 'room:delete',
 
   // Server → Client
   ROOM_JOINED: 'room:joined',
@@ -198,6 +220,8 @@ export const SOCKET_EVENTS = {
   ROOM_LEAVE_REJECTED: 'room:leave:rejected',
   ROOM_OWNER_LEFT: 'room:owner:left',
   ROOM_CLOSED: 'room:closed',
+  ROOM_DELETED: 'room:deleted',
+  ROOM_DELETE_REJECTED: 'room:delete:rejected',
   SPIN_RESOLVED: 'spin:resolved',
   SPIN_OUTCOME: 'spin:outcome',
   SPIN_RESULT: 'spin:result',

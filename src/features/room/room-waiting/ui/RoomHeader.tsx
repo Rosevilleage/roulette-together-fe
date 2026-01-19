@@ -26,14 +26,16 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/Select';
 import { Label } from '@/shared/ui/Label';
 import { SOCKET_EVENTS } from '@/entities/room/model/websocket.types';
-import type { RoomLeavePayload, RoomConfigSetPayload } from '@/entities/room/model/websocket.types';
+import type { RoomLeavePayload, RoomConfigSetPayload, RoomDeletePayload } from '@/entities/room/model/websocket.types';
 import type { WinSentiment } from '@/entities/room/model/room.types';
-import { LogOutIcon, SettingsIcon, UsersIcon, TrophyIcon } from 'lucide-react';
+import { removeOwnedRoom } from '@/entities/room/lib/room_storage';
+import { LogOutIcon, SettingsIcon, UsersIcon, TrophyIcon, Trash2Icon } from 'lucide-react';
 
 export const RoomHeader: React.FC = () => {
   const socket = useSocket();
   const { roomId, roomTitle, isOwner, config, participants } = useRoomStore();
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showConfigDialog, setShowConfigDialog] = useState(false);
   const [winnersCount, setWinnersCount] = useState<number>(config?.winnersCount ?? 1);
   const [winSentiment, setWinSentiment] = useState<WinSentiment>(config?.winSentiment ?? 'POSITIVE');
@@ -74,6 +76,27 @@ export const RoomHeader: React.FC = () => {
     };
     socket.emit(SOCKET_EVENTS.ROOM_CONFIG_SET, payload);
     setShowConfigDialog(false);
+  };
+
+  const handleDeleteRoom = (): void => {
+    setShowDeleteDialog(false);
+
+    // 소켓 연결이 없거나 끊긴 경우 바로 메인 페이지로 이동
+    if (!socket || !socket.connected || !roomId) {
+      window.location.replace('/');
+      return;
+    }
+
+    const payload: RoomDeletePayload = { roomId };
+    socket.emit(SOCKET_EVENTS.ROOM_DELETE, payload);
+
+    // localStorage에서 방 정보 삭제
+    removeOwnedRoom(roomId);
+
+    // 타임아웃 폴백: 3초 내에 서버 응답 없으면 강제 이동
+    setTimeout(() => {
+      window.location.replace('/');
+    }, 3000);
   };
 
   const maxWinners = Math.min(10, Math.max(1, participants.length || 10));
@@ -117,9 +140,44 @@ export const RoomHeader: React.FC = () => {
               <LogOutIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               <span className="hidden sm:inline">나가기</span>
             </Button>
+
+            {isOwner && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1 sm:gap-2 px-2 sm:px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">삭제</span>
+              </Button>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog (Owner Only) */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>방을 삭제하시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              <span className="block text-sm text-destructive bg-destructive/10 rounded-md p-2">
+                방을 삭제하면 모든 참가자가 퇴장되고 방이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.
+              </span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>취소</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteRoom}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              삭제
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Leave Confirmation Dialog */}
       <AlertDialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>

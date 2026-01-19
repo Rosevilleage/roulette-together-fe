@@ -18,6 +18,8 @@ import type {
   RoomLeaveRejectedPayload,
   RoomOwnerLeftPayload,
   RoomClosedPayload,
+  RoomDeletedPayload,
+  RoomDeleteRejectedPayload,
   SpinResolvedPayload,
   SpinOutcomePayload,
   SpinResultPayload,
@@ -79,16 +81,27 @@ export const useRoomEvents = (socket: Socket | null): void => {
           '방장이 이미 다른 곳에서 접속 중입니다.\n잠시 후 다시 시도해주세요. (재연결 가능 시간: 30분)',
         INVALID_OWNER_TOKEN: '방장 인증 정보가 유효하지 않습니다.\n방이 만료되었거나 삭제되었을 수 있습니다.',
         MISSING_OWNER_TOKEN: '방장 인증 정보가 없습니다.',
+        INVALID_OWNER_RID: '다른 브라우저에서 생성된 방입니다.\n방을 생성한 브라우저에서 접속해주세요.',
         INVALID_REQUEST: '잘못된 요청입니다.',
-        INVALID_RID: '세션 정보가 유효하지 않습니다.'
+        INVALID_RID: '세션 정보가 유효하지 않습니다.',
+        ROOM_NOT_FOUND: '존재하지 않는 방입니다.\n방이 삭제되었거나 만료되었을 수 있습니다.'
       };
+
+      // 메인 화면으로 리다이렉트해야 하는 경우
+      const shouldRedirectToHome =
+        payload.reason === 'INVALID_OWNER_TOKEN' ||
+        payload.reason === 'MISSING_OWNER_TOKEN' ||
+        payload.reason === 'INVALID_OWNER_RID' ||
+        payload.reason === 'ROOM_NOT_FOUND';
 
       if (roomId) {
         if (isOwner) {
           const shouldRemove =
             payload.reason === 'INVALID_OWNER_TOKEN' ||
             payload.reason === 'MISSING_OWNER_TOKEN' ||
-            payload.reason === 'OWNER_ALREADY_EXISTS';
+            payload.reason === 'INVALID_OWNER_RID' ||
+            payload.reason === 'OWNER_ALREADY_EXISTS' ||
+            payload.reason === 'ROOM_NOT_FOUND';
 
           if (shouldRemove) {
             console.log('[Room] Removing invalid owned room from storage:', roomId);
@@ -105,6 +118,14 @@ export const useRoomEvents = (socket: Socket | null): void => {
       toast.error(message, {
         duration: 3000
       });
+
+      // owner token이 유효하지 않은 경우 메인 화면으로 리다이렉트
+      if (shouldRedirectToHome) {
+        console.log('[Room] Redirecting to home due to invalid owner token');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+      }
     };
 
     // ============================================
@@ -227,7 +248,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
       };
 
       // Show alert to participants
-      toast.success(messages[payload.reason] || '방이 삭제되었습니다.', {
+      toast.info(messages[payload.reason] || '방이 삭제되었습니다.', {
         duration: 3000
       });
 
@@ -235,6 +256,36 @@ export const useRoomEvents = (socket: Socket | null): void => {
       setTimeout(() => {
         window.location.href = '/';
       }, 1000);
+    };
+
+    // 방장이 방을 삭제했을 때 (참가자에게 전송)
+    const handleRoomDeleted = (payload: RoomDeletedPayload): void => {
+      console.log('[Room] Room deleted by owner:', payload);
+
+      // 방문 기록에서 삭제
+      removeVisitedRoom(payload.roomId);
+
+      toast.info('방장이 방을 삭제했습니다.', {
+        duration: 3000
+      });
+
+      // Navigate to home after 1 second
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+    };
+
+    // 방 삭제 거부 (방장에게 전송)
+    const handleRoomDeleteRejected = (payload: RoomDeleteRejectedPayload): void => {
+      console.error('[Room] Delete rejected:', payload.reason);
+      const messages: Record<string, string> = {
+        NOT_OWNER: '방장만 방을 삭제할 수 있습니다.',
+        INVALID_RID: '잘못된 요청입니다.',
+        INTERNAL_ERROR: '서버 오류가 발생했습니다.'
+      };
+      toast.error(messages[payload.reason] || '방 삭제가 거부되었습니다.', {
+        duration: 3000
+      });
     };
 
     // ============================================
@@ -292,6 +343,8 @@ export const useRoomEvents = (socket: Socket | null): void => {
     socket.on(SOCKET_EVENTS.ROOM_LEAVE_REJECTED, handleRoomLeaveRejected);
     socket.on(SOCKET_EVENTS.ROOM_OWNER_LEFT, handleRoomOwnerLeft);
     socket.on(SOCKET_EVENTS.ROOM_CLOSED, handleRoomClosed);
+    socket.on(SOCKET_EVENTS.ROOM_DELETED, handleRoomDeleted);
+    socket.on(SOCKET_EVENTS.ROOM_DELETE_REJECTED, handleRoomDeleteRejected);
     socket.on(SOCKET_EVENTS.SPIN_RESOLVED, handleSpinResolved);
     socket.on(SOCKET_EVENTS.SPIN_OUTCOME, handleSpinOutcome);
     socket.on(SOCKET_EVENTS.SPIN_RESULT, handleSpinResult);
@@ -315,6 +368,8 @@ export const useRoomEvents = (socket: Socket | null): void => {
       socket.off(SOCKET_EVENTS.ROOM_LEAVE_REJECTED, handleRoomLeaveRejected);
       socket.off(SOCKET_EVENTS.ROOM_OWNER_LEFT, handleRoomOwnerLeft);
       socket.off(SOCKET_EVENTS.ROOM_CLOSED, handleRoomClosed);
+      socket.off(SOCKET_EVENTS.ROOM_DELETED, handleRoomDeleted);
+      socket.off(SOCKET_EVENTS.ROOM_DELETE_REJECTED, handleRoomDeleteRejected);
       socket.off(SOCKET_EVENTS.SPIN_RESOLVED, handleSpinResolved);
       socket.off(SOCKET_EVENTS.SPIN_OUTCOME, handleSpinOutcome);
       socket.off(SOCKET_EVENTS.SPIN_RESULT, handleSpinResult);

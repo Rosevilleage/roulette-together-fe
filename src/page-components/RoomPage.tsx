@@ -24,6 +24,8 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
   const router = useRouter();
   // 한 번 방에 입장했었는지 추적 (재연결 시 사용)
   const hasJoinedOnce = useRef(false);
+  // 방이 닫혔는지 추적 (재연결 다이얼로그 표시 방지)
+  const isRoomClosed = useRef(false);
 
   // 참가자인 경우 저장된 닉네임을 먼저 확인
   const getSavedNickname = (): string => {
@@ -54,12 +56,42 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
     });
   }, [roomId, role, initialNickname, nickname, myNickname, socket?.connected, socket?.id]);
 
-  // 참가자 연결 끊김 감지 및 재연결 처리
+  // 방 닫힘/삭제 이벤트 감지 (재연결 다이얼로그 표시 방지용)
   useEffect(() => {
-    if (!socket || role !== 'participant') return;
+    if (!socket) return;
+
+    const handleRoomClosed = (): void => {
+      console.log('[RoomPage] Room closed, disabling reconnect dialog');
+      isRoomClosed.current = true;
+    };
+
+    const handleRoomDeleted = (): void => {
+      console.log('[RoomPage] Room deleted, disabling reconnect dialog');
+      isRoomClosed.current = true;
+    };
+
+    socket.on(SOCKET_EVENTS.ROOM_CLOSED, handleRoomClosed);
+    socket.on(SOCKET_EVENTS.ROOM_DELETED, handleRoomDeleted);
+
+    return () => {
+      socket.off(SOCKET_EVENTS.ROOM_CLOSED, handleRoomClosed);
+      socket.off(SOCKET_EVENTS.ROOM_DELETED, handleRoomDeleted);
+    };
+  }, [socket]);
+
+  // 연결 끊김 감지 및 재연결 처리 (참가자 & 방장 공통)
+  useEffect(() => {
+    if (!socket) return;
 
     const handleDisconnect = (reason: string): void => {
-      console.log('[RoomPage] Participant disconnected:', reason);
+      const roleLabel = role === 'owner' ? 'Owner' : 'Participant';
+      console.log(`[RoomPage] ${roleLabel} disconnected:`, reason);
+
+      // 방이 닫힌 경우 재연결 다이얼로그 표시하지 않음
+      if (isRoomClosed.current) {
+        console.log('[RoomPage] Room was closed, skipping reconnect dialog');
+        return;
+      }
 
       // 이미 한 번 입장했던 경우에만 재연결 다이얼로그 표시
       if (!hasJoinedOnce.current) return;
@@ -70,17 +102,18 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
         confirmText: '재연결',
         cancelText: '나가기',
         onConfirm: () => {
-          console.log('[RoomPage] Attempting to reconnect...');
+          console.log(`[RoomPage] ${roleLabel} attempting to reconnect...`);
           // 소켓 재연결 시도
           socket.connect();
 
           // 재연결 성공 시 room:join 재전송을 위한 일회성 핸들러
           const handleReconnect = (): void => {
-            console.log('[RoomPage] Reconnected, rejoining room...');
+            console.log(`[RoomPage] ${roleLabel} reconnected, rejoining room...`);
             const joinPayload = {
               roomId,
               role,
               nickname: nickname.trim() || undefined
+              // owner token은 쿠키로 자동 전송됨 (withCredentials: true)
             };
             socket.emit(SOCKET_EVENTS.ROOM_JOIN, joinPayload);
             socket.off('connect', handleReconnect);
@@ -88,7 +121,7 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
 
           // 재연결 실패 처리
           const handleReconnectFailed = (): void => {
-            console.log('[RoomPage] Reconnection failed');
+            console.log(`[RoomPage] ${roleLabel} reconnection failed`);
             showAlert('재연결 실패', '서버에 연결할 수 없습니다. 메인 화면으로 이동합니다.');
             setTimeout(() => {
               router.replace('/');
@@ -112,7 +145,7 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
           }, 5000);
         },
         onCancel: () => {
-          console.log('[RoomPage] User chose to leave');
+          console.log(`[RoomPage] ${roleLabel} chose to leave`);
           router.replace('/');
         }
       });
@@ -136,10 +169,10 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
 
   // 방 입장 성공 추적 (myNickname이 설정되면 입장 성공)
   useEffect(() => {
-    if (myNickname && role === 'participant') {
+    if (myNickname) {
       hasJoinedOnce.current = true;
     }
-  }, [myNickname, role]);
+  }, [myNickname]);
 
   // Join room when connected and ready
   useEffect(() => {
