@@ -29,7 +29,7 @@ export interface UseSoloRouletteReturn {
   addCandidate: (name: string) => void;
   removeCandidate: (id: string) => void;
   updateCandidate: (id: string, name: string) => void;
-  spin: () => SoloCandidate | null;
+  addToHistory: (winners: SoloCandidate[]) => void;
   clearCandidates: () => void;
   clearHistory: () => void;
 }
@@ -66,24 +66,24 @@ export function useSoloRoulette(): UseSoloRouletteReturn {
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [data]);
 
-  const addCandidate = useCallback(
-    (name: string): void => {
-      const trimmedName = name.trim();
-      if (!trimmedName) return;
+  // rerender-functional-setstate: 함수형 setState로 의존성 제거하여 안정적인 콜백 생성
+  const addCandidate = useCallback((name: string): void => {
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
 
+    setData(prev => {
       const newCandidate: SoloCandidate = {
         id: `candidate-${Date.now()}-${Math.random()}`,
         name: trimmedName,
-        color: DEFAULT_COLORS[data.candidates.length % DEFAULT_COLORS.length]
+        color: DEFAULT_COLORS[prev.candidates.length % DEFAULT_COLORS.length]
       };
 
-      setData(prev => ({
+      return {
         ...prev,
         candidates: [...prev.candidates, newCandidate]
-      }));
-    },
-    [data.candidates.length]
-  );
+      };
+    });
+  }, []);
 
   const removeCandidate = useCallback((id: string): void => {
     setData(prev => ({
@@ -102,25 +102,21 @@ export function useSoloRoulette(): UseSoloRouletteReturn {
     }));
   }, []);
 
-  const spin = useCallback((): SoloCandidate | null => {
-    if (data.candidates.length === 0) return null;
-
-    const randomIndex = Math.floor(Math.random() * data.candidates.length);
-    const winner = data.candidates[randomIndex];
+  // 히스토리에 당첨자 추가 (애니메이션 완료 후 호출)
+  const addToHistory = useCallback((winners: SoloCandidate[]): void => {
+    if (winners.length === 0) return;
 
     setData(prev => ({
       ...prev,
       history: [
         {
-          winner,
+          winners,
           timestamp: Date.now()
         },
         ...prev.history
       ]
     }));
-
-    return winner;
-  }, [data.candidates]);
+  }, []);
 
   const clearCandidates = useCallback((): void => {
     setData(prev => ({
@@ -142,7 +138,7 @@ export function useSoloRoulette(): UseSoloRouletteReturn {
     addCandidate,
     removeCandidate,
     updateCandidate,
-    spin,
+    addToHistory,
     clearCandidates,
     clearHistory
   };

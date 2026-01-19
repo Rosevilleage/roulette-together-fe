@@ -65,7 +65,7 @@ export const CreateRoomForm: React.FC = () => {
         </Label>
         <Select value={String(winnersCount)} onValueChange={v => setWinnersCount(Number(v))} disabled={isPending}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="당첨자 수 선택" />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {Array.from({ length: 10 }, (_, i) => i + 1).map(num => (
@@ -86,7 +86,7 @@ export const CreateRoomForm: React.FC = () => {
         </Label>
         <Select value={winSentiment} onValueChange={v => setWinSentiment(v as WinSentiment)} disabled={isPending}>
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="당첨 감정 선택" />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="POSITIVE">긍정적 (당첨 = 좋은 것)</SelectItem>

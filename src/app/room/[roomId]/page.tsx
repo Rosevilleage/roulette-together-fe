@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useSearchParams } from 'next/navigation';
-import { RoomPage } from '@/pages/RoomPage';
+import { RoomPage } from '@/page-components/RoomPage';
 import { ReactElement, useMemo } from 'react';
 import { isOwnedRoom } from '@/entities/room/lib/room_storage';
 import type { Role } from '@/entities/room/model/room.types';

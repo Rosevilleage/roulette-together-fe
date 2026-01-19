@@ -11,7 +11,7 @@ export interface SoloCandidate {
 export interface SoloRouletteData {
   candidates: SoloCandidate[];
   history: Array<{
-    winner: SoloCandidate;
+    winners: SoloCandidate[];
     timestamp: number;
   }>;
 }
