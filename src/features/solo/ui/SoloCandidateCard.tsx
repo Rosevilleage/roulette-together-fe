@@ -37,9 +37,9 @@ export const SoloCandidateCard = memo(function SoloCandidateCard({
             transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
           }}
         >
-          {/* 앞면 - 불투명 배경 */}
+          {/* 앞면 - 단순 배경 */}
           <div
-            className="absolute inset-0 rounded-[25px] border-2 border-border bg-card shadow-lg"
+            className="absolute inset-0 rounded-[25px] border border-[#27272a] bg-background"
             style={{ backfaceVisibility: 'hidden' }}
           >
             <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
@@ -53,14 +53,13 @@ export const SoloCandidateCard = memo(function SoloCandidateCard({
             </div>
           </div>
 
-          {/* 뒷면 - 불투명 배경 */}
+          {/* 뒷면 - 단순 배경 */}
           <div
-            className="absolute inset-0 bg-card rounded-[25px] border-2 border-primary shadow-xl"
+            className="absolute inset-0 bg-card rounded-[25px] border border-[#27272a]"
             style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
           >
-            <div className="absolute inset-0 bg-linear-to-br from-primary/10 to-primary/20 rounded-[23px]" />
             <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
-              <span className="text-4xl text-primary drop-shadow-lg">?</span>
+              <span className="text-4xl">?</span>
             </div>
           </div>
         </div>

@@ -1,20 +1,17 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
+import {
+  GATHERING_DURATION,
+  REVEAL_FLIP_DURATION,
+  DISPERSING_DURATION,
+  RESULT_DELAY_AFTER_STACKED
+} from '@/shared/lib/animation_constants';
+import type { CardAnimationPhase } from '@/shared/types/animation.types';
 import type { SoloCandidate } from '../model/solo-roulette.types';
 
-export type SoloAnimationPhase = 'idle' | 'gathering' | 'stacked' | 'reveal-flip' | 'result-shown' | 'dispersing';
-
-// Animation timing constants (in ms) - Owner Room과 동일
-const GATHERING_DURATION = 600;
-const STACKED_MIN_DURATION = 1000;
-const LIGHT_BEAM_DELAY = 500;
-const DESCENDING_DURATION = 1200;
-const REVEAL_FLIP_DURATION = 600;
-const DISPERSING_DURATION = 800;
-
-// 결과 발표까지의 대기 시간
-const RESULT_DELAY_AFTER_STACKED = STACKED_MIN_DURATION + LIGHT_BEAM_DELAY + DESCENDING_DURATION;
+/** Solo 모드 애니메이션 Phase (공통 타입 재사용) */
+export type SoloAnimationPhase = CardAnimationPhase;
 
 interface UseSoloCardAnimationReturn {
   phase: SoloAnimationPhase;

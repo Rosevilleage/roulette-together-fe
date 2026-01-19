@@ -2,24 +2,16 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useRoomStore } from '@/entities/room/model/room.store';
+import {
+  GATHERING_DURATION,
+  REVEAL_FLIP_DURATION,
+  DISPERSING_DURATION,
+  RESULT_DELAY_AFTER_STACKED
+} from '@/shared/lib/animation_constants';
+import type { CardAnimationPhase } from '@/shared/types/animation.types';
 
-export type OwnerAnimationPhase = 'idle' | 'gathering' | 'stacked' | 'reveal-flip' | 'result-shown' | 'dispersing';
-
-// Animation timing constants (in ms)
-// 참가자 타이밍과 동기화:
-// 참가자: flying-up(600) → waiting(1000) → light-beam(500) → descending(1200) → flip(600) = 3900ms
-// 방장: gathering(600) → stacked(waiting) → reveal-flip(600) → result-shown
-const GATHERING_DURATION = 600; // 참가자 flying-up과 동일
-const STACKED_MIN_DURATION = 1000; // 참가자 waiting과 동일
-const LIGHT_BEAM_DELAY = 500; // 참가자 light-beam과 동일 (reveal-flip 전 대기)
-const DESCENDING_DURATION = 1200; // 참가자 descending과 동일
-const REVEAL_FLIP_DURATION = 600; // 참가자 flip과 동일
-const DISPERSING_DURATION = 800;
-
-// 참가자와 동기화된 타이밍:
-// 참가자 결과 발표: waiting(1000) 후 light-beam(500) + descending(1200) + flip(600) = 3300ms
-// 방장 결과 발표: stacked 후 동일한 대기 시간
-const RESULT_DELAY_AFTER_STACKED = STACKED_MIN_DURATION + LIGHT_BEAM_DELAY + DESCENDING_DURATION;
+/** Owner View 애니메이션 Phase (공통 타입 재사용) */
+export type OwnerAnimationPhase = CardAnimationPhase;
 
 interface UseOwnerCardAnimationReturn {
   phase: OwnerAnimationPhase;

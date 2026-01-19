@@ -3,14 +3,9 @@
 import { useRef, useCallback } from 'react';
 import { animate } from 'motion';
 import type { DOMKeyframesDefinition, AnimationPlaybackControlsWithThen } from 'motion-dom';
+import { getCenterCoords, getStackOffset, captureCardPosition } from '@/shared/lib/animation_utils';
+import type { CardPosition } from '@/shared/types/animation.types';
 import type { OwnerAnimationPhase } from './useOwnerCardAnimation';
-
-interface CardPosition {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
 
 interface UseCardDomAnimationReturn {
   setCardRef: (rid: string) => (el: HTMLDivElement | null) => void;
@@ -33,35 +28,13 @@ export const useCardDomAnimation = (): UseCardDomAnimationReturn => {
   // 현재 진행 중인 애니메이션 컨트롤러
   const activeAnimationsRef = useRef<AnimationPlaybackControlsWithThen[]>([]);
 
-  // 화면 중앙 좌표
-  const getCenterCoords = (): { centerX: number; centerY: number } => {
-    return {
-      centerX: typeof window !== 'undefined' ? window.innerWidth / 2 : 0,
-      centerY: typeof window !== 'undefined' ? window.innerHeight / 2 : 0
-    };
-  };
-
-  // 스택 오프셋 계산
-  const getStackOffset = (index: number): { rotate: number; y: number } => {
-    const direction = index % 2 === 0 ? 1 : -1;
-    const rotate = direction * (index * 2);
-    const y = -index * 2;
-    return { rotate, y };
-  };
-
   // 카드 위치 캡처
   const captureCardPositions = useCallback((): void => {
     const positions = new Map<string, CardPosition>();
 
     cardRefsMap.current.forEach((el, rid) => {
       if (el) {
-        const rect = el.getBoundingClientRect();
-        positions.set(rid, {
-          x: rect.left + rect.width / 2,
-          y: rect.top + rect.height / 2,
-          width: rect.width,
-          height: rect.height
-        });
+        positions.set(rid, captureCardPosition(el));
       }
     });
 

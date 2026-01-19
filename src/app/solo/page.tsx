@@ -196,7 +196,11 @@ export default function SoloPage(): ReactElement {
           </div>
 
           {/* Candidates List */}
-          <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 space-y-4">
+          <div
+            className={`bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6 space-y-4 relative ${
+              isAnimating ? 'z-50' : ''
+            }`}
+          >
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <h2 className="text-lg font-semibold flex items-center gap-2">
                 <Users className="w-5 h-5" />
@@ -238,7 +242,7 @@ export default function SoloPage(): ReactElement {
                   <div
                     key={candidate.id}
                     ref={setCardRef(candidate.id)}
-                    className="shrink-0 w-36 aspect-4/5 sm:w-auto p-1"
+                    className="shrink-0 w-36 aspect-4/5 sm:w-auto p-1 relative"
                     style={{
                       willChange: isAnimating ? 'transform, opacity' : 'auto'
                     }}
