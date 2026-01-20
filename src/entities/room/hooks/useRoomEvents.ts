@@ -84,6 +84,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
         INVALID_OWNER_RID: '다른 브라우저에서 생성된 방입니다.\n방을 생성한 브라우저에서 접속해주세요.',
         INVALID_REQUEST: '잘못된 요청입니다.',
         INVALID_RID: '세션 정보가 유효하지 않습니다.',
+        INVALID_RID_FORMAT: '세션 정보 형식이 올바르지 않습니다.\n쿠키를 삭제 후 다시 시도해주세요.',
         ROOM_NOT_FOUND: '존재하지 않는 방입니다.\n방이 삭제되었거나 만료되었을 수 있습니다.'
       };
 
@@ -92,6 +93,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
         payload.reason === 'INVALID_OWNER_TOKEN' ||
         payload.reason === 'MISSING_OWNER_TOKEN' ||
         payload.reason === 'INVALID_OWNER_RID' ||
+        payload.reason === 'INVALID_RID_FORMAT' ||
         payload.reason === 'ROOM_NOT_FOUND';
 
       if (roomId) {

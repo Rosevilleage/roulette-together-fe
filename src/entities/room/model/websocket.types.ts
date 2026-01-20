@@ -64,6 +64,7 @@ export interface RoomJoinRejectedPayload {
     | 'OWNER_ALREADY_EXISTS'
     | 'INVALID_REQUEST'
     | 'INVALID_RID'
+    | 'INVALID_RID_FORMAT'
     | 'MISSING_OWNER_TOKEN'
     | 'INVALID_OWNER_TOKEN'
     | 'INVALID_OWNER_RID'
