@@ -26,7 +26,7 @@ export function GlobalAlertDialog(): ReactElement {
           <AlertDialogTitle>{title}</AlertDialogTitle>
           {description && <AlertDialogDescription>{description}</AlertDialogDescription>}
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter centered={!isConfirm}>
           {isConfirm ? (
             <>
               <AlertDialogCancel onClick={handleCancel}>{cancelText}</AlertDialogCancel>

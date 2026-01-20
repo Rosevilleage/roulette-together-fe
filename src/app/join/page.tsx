@@ -2,10 +2,12 @@
 
 import { useState, useCallback, useEffect, ReactElement } from 'react';
 import { useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { Label } from '@/shared/ui/Label';
 import { useAlertStore } from '@/shared/store/alert.store';
+import { validateRoomUrl } from '@/shared/lib/url_validator';
 import { ArrowLeftIcon, QrCodeIcon, ClockIcon, TrashIcon } from 'lucide-react';
 import {
   getVisitedRooms,
@@ -13,6 +15,12 @@ import {
   cleanupOldVisitedRooms,
   type VisitedRoomInfo
 } from '@/entities/room/lib/room_storage';
+
+// QR 스캐너 다이얼로그 - 동적 import로 번들 분리
+const QrScannerDialog = dynamic(
+  () => import('@/features/room/join-room/ui/QrScannerDialog').then(mod => ({ default: mod.QrScannerDialog })),
+  { ssr: false }
+);
 
 // 초기 방문 기록 불러오기 (컴포넌트 외부에서 실행)
 const getInitialVisitedRooms = (): VisitedRoomInfo[] => {
@@ -25,34 +33,35 @@ export default function JoinPage(): ReactElement {
   const router = useRouter();
   const showAlert = useAlertStore(state => state.showAlert);
   const [roomUrl, setRoomUrl] = useState<string>('');
-  const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [isQrDialogOpen, setIsQrDialogOpen] = useState<boolean>(false);
   const [visitedRooms, setVisitedRooms] = useState<VisitedRoomInfo[]>(getInitialVisitedRooms);
 
+  // URL 입력으로 참가
   const handleJoinByUrl = useCallback((): void => {
-    try {
-      // Parse URL to extract roomId and other params
-      const url = new URL(roomUrl);
-      const pathname = url.pathname;
+    const validation = validateRoomUrl(roomUrl);
 
-      // Expected format: /room/:roomId?role=participant
-      if (pathname.startsWith('/room/')) {
-        router.push(`${pathname}${url.search || '?role=participant'}`);
-      } else {
-        showAlert('올바른 방 링크가 아닙니다.');
-      }
-    } catch {
-      showAlert('올바른 URL 형식이 아닙니다.');
+    if (!validation.isValid) {
+      showAlert(validation.reason || '올바른 URL 형식이 아닙니다.');
+      return;
     }
+
+    router.push(validation.sanitizedPath!);
   }, [roomUrl, router, showAlert]);
 
+  // QR 스캔 다이얼로그 열기
   const handleQrScan = (): void => {
-    setIsScanning(true);
-    // QR 스캔 기능은 추후 구현
-    // 카메라 권한 요청 및 QR 코드 스캔
-    showAlert('QR 코드 스캔 기능은 개발 중입니다.');
-    setIsScanning(false);
+    setIsQrDialogOpen(true);
   };
 
+  // QR 스캔 성공 시 이동
+  const handleQrScanSuccess = useCallback(
+    (roomPath: string): void => {
+      router.push(roomPath);
+    },
+    [router]
+  );
+
+  // 최근 방문한 방으로 참가
   const handleJoinVisitedRoom = useCallback(
     (room: VisitedRoomInfo): void => {
       router.push(`/room/${room.roomId}?role=participant`);
@@ -60,6 +69,7 @@ export default function JoinPage(): ReactElement {
     [router]
   );
 
+  // 최근 방문 기록 삭제
   const handleRemoveVisitedRoom = useCallback((roomId: string, e: React.MouseEvent): void => {
     e.stopPropagation();
     removeVisitedRoom(roomId);
@@ -76,6 +86,7 @@ export default function JoinPage(): ReactElement {
     return () => clearInterval(interval);
   }, []);
 
+  // 상대 시간 포맷
   const formatRelativeTime = useCallback(
     (timestamp: number): string => {
       const diff = currentTime - timestamp;
@@ -142,20 +153,14 @@ export default function JoinPage(): ReactElement {
         <div className="bg-card/50 backdrop-blur-sm border border-border rounded-2xl p-6">
           <div className="flex flex-col items-center gap-4">
             <div className="w-full aspect-square max-w-[280px] bg-muted/30 rounded-xl flex items-center justify-center border-2 border-dashed border-border">
-              {isScanning ? (
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">카메라로 QR 코드를 비춰주세요</p>
-                </div>
-              ) : (
-                <div className="text-center space-y-2">
-                  <QrCodeIcon className="w-16 h-16 mx-auto text-muted-foreground/50" />
-                  <p className="text-sm text-muted-foreground">QR 코드 스캔 영역</p>
-                </div>
-              )}
+              <div className="text-center space-y-2">
+                <QrCodeIcon className="w-16 h-16 mx-auto text-muted-foreground/50" />
+                <p className="text-sm text-muted-foreground">QR 코드 스캔 영역</p>
+              </div>
             </div>
-            <Button size="lg" className="w-full" onClick={handleQrScan} disabled={isScanning}>
+            <Button size="lg" className="w-full" onClick={handleQrScan}>
               <QrCodeIcon className="w-5 h-5 mr-2" />
-              {isScanning ? '스캔 중...' : 'QR 코드 스캔하기'}
+              QR 코드 스캔하기
             </Button>
           </div>
         </div>
@@ -188,6 +193,9 @@ export default function JoinPage(): ReactElement {
           </Button>
         </div>
       </div>
+
+      {/* QR Scanner Dialog */}
+      <QrScannerDialog open={isQrDialogOpen} onOpenChange={setIsQrDialogOpen} onScanSuccess={handleQrScanSuccess} />
     </div>
   );
 }
