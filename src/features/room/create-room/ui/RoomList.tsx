@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { motion } from 'motion/react';
 import { useRoomsQuery } from '@/entities/room/api/room.queries';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
@@ -57,44 +58,58 @@ export const RoomList: React.FC = () => {
     <div className="w-full">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-semibold text-foreground">내가 만든 방</h2>
-        <span className="text-xs text-muted-foreground">재연결 가능: 30분</span>
+        <span className="text-xs text-muted-foreground">{rooms.length}개 · 재연결 가능: 30분</span>
       </div>
-      <div className="flex flex-col gap-2">
+      <motion.div
+        className="flex flex-col gap-2 max-h-[40dvh] overflow-y-auto custom-scrollbar"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          visible: { transition: { staggerChildren: 0.08 } }
+        }}
+      >
         {rooms.map(room => (
-          <Card
+          <motion.div
             key={room.roomId}
-            className="p-4 hover:bg-accent cursor-pointer transition-colors"
-            onClick={() => handleRoomClick(room.roomId)}
+            variants={{
+              hidden: { opacity: 0, y: 16 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } }
+            }}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-base truncate">{room.title}</h3>
-                </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs text-muted-foreground">{room.ownerNickname}</span>
-                  <span className="text-xs text-muted-foreground">#{room.roomId.slice(-6)}</span>
-                </div>
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <TrophyIcon className="w-3.5 h-3.5" />
-                    <span>
-                      {room.winnersCount}명 {room.winSentiment === 'POSITIVE' ? '당첨' : '걸림'}
-                    </span>
+            <Card
+              className="p-4 hover:bg-accent cursor-pointer transition-colors"
+              onClick={() => handleRoomClick(room.roomId)}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-base truncate">{room.title}</h3>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>{formatLastActivity(room.lastActivity, now)}</span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs text-muted-foreground">{room.ownerNickname}</span>
+                    <span className="text-xs text-muted-foreground">#{room.roomId.slice(-6)}</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <TrophyIcon className="w-3.5 h-3.5" />
+                      <span>
+                        {room.winnersCount}명 {room.winSentiment === 'POSITIVE' ? '당첨' : '걸림'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>{formatLastActivity(room.lastActivity, now)}</span>
+                    </div>
                   </div>
                 </div>
+                <Button size="sm" variant="ghost" onClick={() => handleRoomClick(room.roomId)}>
+                  입장
+                </Button>
               </div>
-              <Button size="sm" variant="ghost" onClick={() => handleRoomClick(room.roomId)}>
-                입장
-              </Button>
-            </div>
-          </Card>
+            </Card>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 };
