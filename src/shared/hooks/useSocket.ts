@@ -30,6 +30,18 @@ function getOrCreateSocket(): Socket {
 }
 
 /**
+ * 소켓 연결을 완전히 해제하고 인스턴스를 제거
+ * 방 페이지를 떠날 때 호출하여 새 쿠키로 재연결할 수 있도록 함
+ */
+export function disconnectSocket(): void {
+  if (globalSocket) {
+    console.log('[Socket] Disconnecting and destroying socket instance');
+    globalSocket.disconnect();
+    globalSocket = null;
+  }
+}
+
+/**
  * Hook to manage Socket.IO connection
  * Hydration-safe: initializes socket only on client side via useEffect
  * @returns Socket instance or null if not connected/not mounted

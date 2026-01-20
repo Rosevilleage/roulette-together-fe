@@ -96,9 +96,12 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
       // 이미 한 번 입장했던 경우에만 재연결 다이얼로그 표시
       if (!hasJoinedOnce.current) return;
 
+      const roomName = useRoomStore.getState().roomTitle;
       showConfirm({
         title: '연결이 끊어졌습니다',
-        description: '서버와의 연결이 끊어졌습니다. 재연결하시겠습니까?',
+        description: roomName
+          ? `"${roomName}" 방과의 연결이 끊어졌습니다. 재연결하시겠습니까?`
+          : '서버와의 연결이 끊어졌습니다. 재연결하시겠습니까?',
         confirmText: '재연결',
         cancelText: '나가기',
         onConfirm: () => {
