@@ -35,12 +35,22 @@ pnpm commit        # Interactive commit wizard with emoji prefixes
 
 ## Environment Variables
 
-Required in `.env.local`:
+### Development (`.env.local`)
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8080
 NEXT_PUBLIC_WS_URL=http://localhost:8080
 NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
+```
+
+### Production (Vercel Dashboard)
+
+**IMPORTANT**: Never commit production environment variables to the repository. Set them in Vercel Dashboard (Settings > Environment Variables):
+
+```env
+NEXT_PUBLIC_API_URL=https://your-production-api-url
+NEXT_PUBLIC_WS_URL=https://your-production-api-url
+NEXT_PUBLIC_FRONTEND_URL=https://your-app.vercel.app
 ```
 
 ## Architecture
@@ -219,3 +229,39 @@ User Action → Socket Emit → Server Processing → Socket Event → useRoomEv
 3. Add handler in [src/entities/room/hooks/useRoomEvents.ts](src/entities/room/hooks/useRoomEvents.ts)
 4. Update Zustand store if needed ([src/entities/room/model/room.store.ts](src/entities/room/model/room.store.ts))
 5. Emit from components using `socket.emit(SOCKET_EVENTS.EVENT_NAME, payload)`
+
+## Deployment
+
+### Vercel Deployment
+
+This project is configured for deployment on Vercel via the `deploy` branch.
+
+**Key Files:**
+
+- `vercel.json` - Vercel configuration (build commands, regions, headers)
+- `.env.example` - Environment variables guide (includes production reference)
+
+**Deployment Setup:**
+
+1. **Connect GitHub Repository** to Vercel
+2. **Select `deploy` branch** for production deployments
+3. **Set Environment Variables** in Vercel Dashboard:
+   - `NEXT_PUBLIC_API_URL`: `https://your-production-api-url`
+   - `NEXT_PUBLIC_WS_URL`: `https://your-production-api-url`
+   - `NEXT_PUBLIC_FRONTEND_URL`: Your Vercel app URL (e.g., `https://roulette-together.vercel.app`)
+4. **Deploy**
+
+**Build Configuration:**
+
+- Build Command: `pnpm build`
+- Install Command: `pnpm install`
+- Output Directory: `.next`
+- Node.js Version: 20.x
+- Region: Seoul (icn1)
+
+**Post-Deployment Checklist:**
+
+- [ ] Test WebSocket connection to backend
+- [ ] Verify room creation and joining flow
+- [ ] Check QR code and share link generation
+- [ ] Confirm real-time participant updates work

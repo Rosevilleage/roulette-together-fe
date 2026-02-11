@@ -163,6 +163,80 @@ pnpm lint:fix
 - [ ] 방 설정 변경 기능 (방장)
 - [ ] 에러 처리 개선
 
+## 배포
+
+### Vercel 배포
+
+이 프로젝트는 Vercel로 배포할 수 있습니다.
+
+#### 배포 전 준비
+
+1. **환경 변수 설정** (Vercel Dashboard > Settings > Environment Variables):
+
+```env
+NEXT_PUBLIC_API_URL=...
+NEXT_PUBLIC_WS_URL=...
+NEXT_PUBLIC_FRONTEND_URL=https://your-app.vercel.app
+```
+
+2. **Build & Development 설정**:
+   - Build Command: `pnpm build`
+   - Install Command: `pnpm install`
+   - Output Directory: `.next` (기본값)
+
+#### 배포 방법
+
+**GitHub 연동 (권장):**
+
+1. Vercel Dashboard에서 New Project 클릭
+2. GitHub 저장소 연결
+3. `deploy` 브랜치 선택
+4. 환경 변수 설정
+5. Deploy 클릭
+
+**Vercel CLI:**
+
+```bash
+# Vercel CLI 설치
+npm i -g vercel
+
+# 프로젝트 디렉토리에서 배포
+vercel --prod
+```
+
+#### 주요 설정
+
+- **Framework**: Next.js
+- **Node.js Version**: 20.x (자동)
+- **Region**: Seoul (icn1)
+- **Package Manager**: pnpm
+
+#### 배포 후 확인 사항
+
+- [ ] WebSocket 연결 동작 확인 (your-production-api-url)
+- [ ] 방 생성/입장 플로우 테스트
+- [ ] 공유 링크 생성 및 QR 코드 확인
+- [ ] 실시간 통신 기능 동작 확인
+
+### 프로덕션 환경 변수
+
+**중요**: 프로덕션 환경 변수는 소스 코드에 포함하지 말고, Vercel Dashboard에서 직접 설정하세요.
+
+Vercel Dashboard > Settings > Environment Variables에서 아래 값들을 설정:
+
+```env
+# 백엔드 API
+NEXT_PUBLIC_API_URL=...
+
+# WebSocket 서버
+NEXT_PUBLIC_WS_URL=...
+
+# 프론트엔드 URL (배포 후 실제 도메인으로 변경)
+NEXT_PUBLIC_FRONTEND_URL=...
+```
+
+참고: `.env.example` 파일에 프로덕션 환경 변수 예시가 포함되어 있습니다.
+
 ## 참고 문서
 
 - [개발 계획서](./docs/plans/ROULETTE_first_plan.md)
