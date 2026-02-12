@@ -235,8 +235,6 @@ NEXT_PUBLIC_WS_URL=...
 NEXT_PUBLIC_FRONTEND_URL=...
 ```
 
-참고: `.env.example` 파일에 프로덕션 환경 변수 예시가 포함되어 있습니다.
-
 ## 참고 문서
 
 - [개발 계획서](./docs/plans/ROULETTE_first_plan.md)
