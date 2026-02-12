@@ -220,8 +220,6 @@ vercel --prod
 
 ### 프로덕션 환경 변수
 
-**중요**: 프로덕션 환경 변수는 소스 코드에 포함하지 말고, Vercel Dashboard에서 직접 설정하세요.
-
 Vercel Dashboard > Settings > Environment Variables에서 아래 값들을 설정:
 
 ```env
