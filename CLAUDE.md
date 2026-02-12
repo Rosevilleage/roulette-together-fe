@@ -48,9 +48,9 @@ NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
 **IMPORTANT**: Never commit production environment variables to the repository. Set them in Vercel Dashboard (Settings > Environment Variables):
 
 ```env
-NEXT_PUBLIC_API_URL=https://your-production-api-url
-NEXT_PUBLIC_WS_URL=https://your-production-api-url
-NEXT_PUBLIC_FRONTEND_URL=https://your-app.vercel.app
+NEXT_PUBLIC_API_URL=<your-production-api-url>
+NEXT_PUBLIC_WS_URL=<your-production-ws-url>
+NEXT_PUBLIC_FRONTEND_URL=<your-vercel-app-url>
 ```
 
 ## Architecture
@@ -246,8 +246,8 @@ This project is configured for deployment on Vercel via the `deploy` branch.
 1. **Connect GitHub Repository** to Vercel
 2. **Select `deploy` branch** for production deployments
 3. **Set Environment Variables** in Vercel Dashboard:
-   - `NEXT_PUBLIC_API_URL`: `https://your-production-api-url`
-   - `NEXT_PUBLIC_WS_URL`: `https://your-production-api-url`
+   - `NEXT_PUBLIC_API_URL`: Your production API server URL
+   - `NEXT_PUBLIC_WS_URL`: Your production WebSocket server URL
    - `NEXT_PUBLIC_FRONTEND_URL`: Your Vercel app URL (e.g., `https://roulette-together.vercel.app`)
 4. **Deploy**
 

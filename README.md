@@ -213,7 +213,7 @@ vercel --prod
 
 #### 배포 후 확인 사항
 
-- [ ] WebSocket 연결 동작 확인 (your-production-api-url)
+- [ ] WebSocket 연결 동작 확인 (프로덕션 API 서버)
 - [ ] 방 생성/입장 플로우 테스트
 - [ ] 공유 링크 생성 및 QR 코드 확인
 - [ ] 실시간 통신 기능 동작 확인
