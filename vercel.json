@@ -5,6 +5,11 @@
   "installCommand": "pnpm install",
   "framework": "nextjs",
   "regions": ["icn1"],
+  "git": {
+    "deploymentEnabled": {
+      "deploy": true
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",
