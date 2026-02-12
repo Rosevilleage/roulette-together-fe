@@ -2,6 +2,8 @@
  * LocalStorage를 사용하여 사용자가 생성한 방 정보를 관리합니다.
  */
 
+import { logger } from '@/shared/lib/logger';
+
 const STORAGE_KEY = 'roulette_owned_rooms';
 const VISITED_ROOMS_KEY = 'roulette_visited_rooms';
 
@@ -31,7 +33,7 @@ export function saveOwnedRoom(roomId: string): void {
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(ownedRooms));
   } catch (error) {
-    console.error('Failed to save owned room:', error);
+    logger.error('Failed to save owned room:', error);
   }
 }
 
@@ -45,7 +47,7 @@ export function isOwnedRoom(roomId: string): boolean {
     const ownedRooms = getOwnedRooms();
     return roomId in ownedRooms;
   } catch (error) {
-    console.error('Failed to check owned room:', error);
+    logger.error('Failed to check owned room:', error);
     return false;
   }
 }
@@ -60,7 +62,7 @@ function getOwnedRooms(): Record<string, OwnedRoomInfo> {
     const stored = localStorage.getItem(STORAGE_KEY);
     return stored ? JSON.parse(stored) : {};
   } catch (error) {
-    console.error('Failed to get owned rooms:', error);
+    logger.error('Failed to get owned rooms:', error);
     return {};
   }
 }
@@ -76,7 +78,7 @@ export function removeOwnedRoom(roomId: string): void {
     delete ownedRooms[roomId];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(ownedRooms));
   } catch (error) {
-    console.error('Failed to remove owned room:', error);
+    logger.error('Failed to remove owned room:', error);
   }
 }
 
@@ -103,7 +105,7 @@ export function cleanupOldRooms(): void {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(ownedRooms));
     }
   } catch (error) {
-    console.error('Failed to cleanup old rooms:', error);
+    logger.error('Failed to cleanup old rooms:', error);
   }
 }
 
@@ -121,7 +123,7 @@ function getVisitedRoomsMap(): Record<string, VisitedRoomInfo> {
     const stored = localStorage.getItem(VISITED_ROOMS_KEY);
     return stored ? JSON.parse(stored) : {};
   } catch (error) {
-    console.error('Failed to get visited rooms:', error);
+    logger.error('Failed to get visited rooms:', error);
     return {};
   }
 }
@@ -142,7 +144,7 @@ export function saveVisitedRoom(roomId: string, nickname: string, roomName?: str
     };
     localStorage.setItem(VISITED_ROOMS_KEY, JSON.stringify(visitedRooms));
   } catch (error) {
-    console.error('Failed to save visited room:', error);
+    logger.error('Failed to save visited room:', error);
   }
 }
 
@@ -156,7 +158,7 @@ export function getVisitedRoom(roomId: string): VisitedRoomInfo | null {
     const visitedRooms = getVisitedRoomsMap();
     return visitedRooms[roomId] || null;
   } catch (error) {
-    console.error('Failed to get visited room:', error);
+    logger.error('Failed to get visited room:', error);
     return null;
   }
 }
@@ -171,7 +173,7 @@ export function getVisitedRooms(): VisitedRoomInfo[] {
     const visitedRooms = getVisitedRoomsMap();
     return Object.values(visitedRooms).sort((a, b) => b.visitedAt - a.visitedAt);
   } catch (error) {
-    console.error('Failed to get visited rooms:', error);
+    logger.error('Failed to get visited rooms:', error);
     return [];
   }
 }
@@ -187,7 +189,7 @@ export function removeVisitedRoom(roomId: string): void {
     delete visitedRooms[roomId];
     localStorage.setItem(VISITED_ROOMS_KEY, JSON.stringify(visitedRooms));
   } catch (error) {
-    console.error('Failed to remove visited room:', error);
+    logger.error('Failed to remove visited room:', error);
   }
 }
 
@@ -214,6 +216,6 @@ export function cleanupOldVisitedRooms(): void {
       localStorage.setItem(VISITED_ROOMS_KEY, JSON.stringify(visitedRooms));
     }
   } catch (error) {
-    console.error('Failed to cleanup old visited rooms:', error);
+    logger.error('Failed to cleanup old visited rooms:', error);
   }
 }

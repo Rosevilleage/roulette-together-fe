@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { Renderer, Program, Triangle, Mesh } from 'ogl';
+import { logger } from '@/shared/lib/logger';
 
 // 디바이스 성능 감지 (PixelCard와 동일한 로직)
 const getDevicePerformanceLevel = (): 'low' | 'medium' | 'high' => {
@@ -360,7 +361,7 @@ void main() {
           renderer.render({ scene: mesh });
           animationIdRef.current = requestAnimationFrame(loop);
         } catch (error) {
-          console.warn('WebGL rendering error:', error);
+          logger.warn('WebGL rendering error:', error);
           return;
         }
       };
@@ -389,7 +390,7 @@ void main() {
               canvas.parentNode.removeChild(canvas);
             }
           } catch (error) {
-            console.warn('Error during WebGL cleanup:', error);
+            logger.warn('Error during WebGL cleanup:', error);
           }
         }
 

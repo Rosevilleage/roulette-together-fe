@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { SoloCandidate, SoloRouletteData } from '../model/solo-roulette.types';
+import { logger } from '@/shared/lib/logger';
 
 const STORAGE_KEY = 'solo-roulette-data';
 
@@ -49,7 +50,7 @@ export function useSoloRoulette(): UseSoloRouletteReturn {
       try {
         return JSON.parse(stored) as SoloRouletteData;
       } catch (err) {
-        console.error('Failed to parse stored roulette data:', err);
+        logger.error('Failed to parse stored roulette data:', err);
       }
     }
 

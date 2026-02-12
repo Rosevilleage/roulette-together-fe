@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
+import { logger } from '@/shared/lib/logger';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080';
 
@@ -17,12 +18,12 @@ function getOrCreateSocket(): Socket {
       autoConnect: false // 자동 연결 비활성화
     });
 
-    console.log('[Socket] Created new socket instance (not connected yet)');
+    logger.log('[Socket] Created new socket instance (not connected yet)');
   }
 
   // Always ensure socket is connected
   if (!globalSocket.connected) {
-    console.log('[Socket] Connecting to server...');
+    logger.log('[Socket] Connecting to server...');
     globalSocket.connect();
   }
 
@@ -35,7 +36,7 @@ function getOrCreateSocket(): Socket {
  */
 export function disconnectSocket(): void {
   if (globalSocket) {
-    console.log('[Socket] Disconnecting and destroying socket instance');
+    logger.log('[Socket] Disconnecting and destroying socket instance');
     globalSocket.disconnect();
     globalSocket = null;
   }
@@ -71,18 +72,17 @@ export const useSocket = (): Socket | null => {
 
     // 연결 상태 변경 시 리렌더링 트리거
     const handleConnect = (): void => {
-      console.log('[Socket] Connected:', socketInstance.id);
+      logger.log('[Socket] Connected:', socketInstance.id);
       forceUpdate();
     };
 
     const handleDisconnect = (reason: string): void => {
-      console.log('[Socket] Disconnected:', reason);
+      logger.log('[Socket] Disconnected:', reason);
       forceUpdate();
     };
 
     const handleConnectError = (error: Error): void => {
-      console.error('[Socket] Connection error:', error);
-      console.error('[Socket] WS_URL:', WS_URL);
+      logger.error('[Socket] Connection error:', error);
     };
 
     socketInstance.on('connect', handleConnect);

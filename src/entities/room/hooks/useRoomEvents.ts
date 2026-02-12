@@ -4,6 +4,7 @@ import { useRoomStore } from '@/entities/room/model/room.store';
 import { showAlert } from '@/shared/store/alert.store';
 import { removeOwnedRoom, saveVisitedRoom, removeVisitedRoom } from '@/entities/room/lib/room_storage';
 import { SOCKET_EVENTS } from '@/entities/room/model/websocket.types';
+import { logger } from '@/shared/lib/logger';
 import type {
   RoomJoinedPayload,
   RoomJoinRejectedPayload,
@@ -56,7 +57,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     // ============================================
 
     const handleRoomJoined = (payload: RoomJoinedPayload): void => {
-      console.log('[Room] Joined:', payload);
+      logger.log('[Room] Joined:', payload);
       setMyInfo(payload.you.nickname, payload.you.rid, payload.you.isOwner);
       setRoomTitle(payload.title); // v2.8: 방 제목 저장
       // 방에 입장하면 방장이 있다고 가정 (방장 본인이거나 방장이 있는 방에 입장)
@@ -69,7 +70,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     };
 
     const handleRoomJoinRejected = (payload: RoomJoinRejectedPayload): void => {
-      console.error('[Room] Join rejected:', payload.reason);
+      logger.error('[Room] Join rejected:', payload.reason);
 
       // 방장 토큰이 유효하지 않거나 방이 존재하지 않는 경우 localStorage에서 제거
       const roomId = useRoomStore.getState().roomId;
@@ -106,12 +107,12 @@ export const useRoomEvents = (socket: Socket | null): void => {
             payload.reason === 'ROOM_NOT_FOUND';
 
           if (shouldRemove) {
-            console.log('[Room] Removing invalid owned room from storage:', roomId);
+            logger.log('[Room] Removing invalid owned room from storage:', roomId);
             removeOwnedRoom(roomId);
           }
         } else {
           // 참가자인 경우 방문 기록 삭제 (방이 존재하지 않음)
-          console.log('[Room] Removing visited room from storage:', roomId);
+          logger.log('[Room] Removing visited room from storage:', roomId);
           removeVisitedRoom(roomId);
         }
       }
@@ -123,7 +124,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
 
       // owner token이 유효하지 않은 경우 메인 화면으로 리다이렉트
       if (shouldRedirectToHome) {
-        console.log('[Room] Redirecting to home due to invalid owner token');
+        logger.log('[Room] Redirecting to home due to invalid owner token');
         setTimeout(() => {
           window.location.href = '/';
         }, 1500);
@@ -135,7 +136,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     // ============================================
 
     const handleRoomConfig = (payload: RoomConfigPayload): void => {
-      console.log('[Room] Config updated:', payload);
+      logger.log('[Room] Config updated:', payload);
       setConfig({
         winnersCount: payload.winnersCount,
         winSentiment: payload.winSentiment,
@@ -144,7 +145,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     };
 
     const handleRoomConfigRejected = (payload: RoomConfigRejectedPayload): void => {
-      console.error('[Room] Config rejected:', payload.reason);
+      logger.error('[Room] Config rejected:', payload.reason);
       toast.error(`설정 변경이 거부되었습니다: ${payload.reason}`, {
         duration: 3000
       });
@@ -155,7 +156,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     // ============================================
 
     const handleRoomParticipants = (payload: RoomParticipantsPayload): void => {
-      console.log('[Room] Participants updated:', payload);
+      logger.log('[Room] Participants updated:', payload);
       setParticipants(payload.participants, payload.readyCount, payload.allReady);
 
       // Update my ready state if I'm a participant
@@ -171,12 +172,12 @@ export const useRoomEvents = (socket: Socket | null): void => {
     // ============================================
 
     const handleNicknameChanged = (payload: NicknameChangedPayload): void => {
-      console.log('[Room] Nickname changed:', payload);
+      logger.log('[Room] Nickname changed:', payload);
       updateMyNickname(payload.nickname);
     };
 
     const handleNicknameChangeRejected = (payload: NicknameChangeRejectedPayload): void => {
-      console.error('[Room] Nickname change rejected:', payload.reason);
+      logger.error('[Room] Nickname change rejected:', payload.reason);
       toast.error(`닉네임 변경이 거부되었습니다: ${payload.reason}`, {
         duration: 3000
       });
@@ -187,12 +188,12 @@ export const useRoomEvents = (socket: Socket | null): void => {
     // ============================================
 
     const handleReadyToggled = (payload: ReadyToggledPayload): void => {
-      console.log('[Room] Ready toggled:', payload);
+      logger.log('[Room] Ready toggled:', payload);
       setMyReady(payload.ready);
     };
 
     const handleReadyToggleRejected = (payload: ReadyToggleRejectedPayload): void => {
-      console.error('[Room] Ready toggle rejected:', payload.reason);
+      logger.error('[Room] Ready toggle rejected:', payload.reason);
       toast.error(`준비 상태 변경이 거부되었습니다: ${payload.reason}`, {
         duration: 3000
       });
@@ -203,7 +204,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     // ============================================
 
     const handleRoomLeft = (payload: RoomLeftPayload): void => {
-      console.log('[Room] Left successfully:', payload);
+      logger.log('[Room] Left successfully:', payload);
 
       // Clean up room storage if owner
       const roomId = useRoomStore.getState().roomId;
@@ -218,7 +219,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     };
 
     const handleRoomLeaveRejected = (payload: RoomLeaveRejectedPayload): void => {
-      console.error('[Room] Leave rejected:', payload.reason);
+      logger.error('[Room] Leave rejected:', payload.reason);
       const messages: Record<string, string> = {
         INVALID_REQUEST: '잘못된 요청입니다',
         NOT_IN_ROOM: '방에 입장하지 않았습니다',
@@ -228,7 +229,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     };
 
     const handleRoomOwnerLeft = (payload: RoomOwnerLeftPayload): void => {
-      console.log('[Room] Owner left:', payload);
+      logger.log('[Room] Owner left:', payload);
 
       // Update owner presence state
       setOwnerPresent(false);
@@ -239,7 +240,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     };
 
     const handleRoomClosed = (payload: RoomClosedPayload): void => {
-      console.log('[Room] Room closed:', payload);
+      logger.log('[Room] Room closed:', payload);
 
       // 방이 닫히면 방문 기록에서 삭제
       removeVisitedRoom(payload.roomId);
@@ -262,7 +263,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
 
     // 방장이 방을 삭제했을 때 (참가자에게 전송)
     const handleRoomDeleted = (payload: RoomDeletedPayload): void => {
-      console.log('[Room] Room deleted by owner:', payload);
+      logger.log('[Room] Room deleted by owner:', payload);
 
       // 방문 기록에서 삭제
       removeVisitedRoom(payload.roomId);
@@ -279,7 +280,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
 
     // 방 삭제 거부 (방장에게 전송)
     const handleRoomDeleteRejected = (payload: RoomDeleteRejectedPayload): void => {
-      console.error('[Room] Delete rejected:', payload.reason);
+      logger.error('[Room] Delete rejected:', payload.reason);
       const messages: Record<string, string> = {
         NOT_OWNER: '방장만 방을 삭제할 수 있습니다.',
         INVALID_RID: '잘못된 요청입니다.',
@@ -295,7 +296,7 @@ export const useRoomEvents = (socket: Socket | null): void => {
     // ============================================
 
     const handleSpinResolved = (payload: SpinResolvedPayload): void => {
-      console.log('[Spin] Resolved:', payload);
+      logger.log('[Spin] Resolved:', payload);
       startSpin(payload.spinId, payload.animation.durationMs);
       setConfig({
         winnersCount: payload.winnersCount,
@@ -305,18 +306,18 @@ export const useRoomEvents = (socket: Socket | null): void => {
     };
 
     const handleSpinOutcome = (payload: SpinOutcomePayload): void => {
-      console.log('[Spin] My outcome:', payload);
+      logger.log('[Spin] My outcome:', payload);
       setMyOutcome(payload.outcome);
     };
 
     const handleSpinResult = (payload: SpinResultPayload): void => {
-      console.log('[Spin] Result:', payload);
+      logger.log('[Spin] Result:', payload);
       setAllOutcomes(payload.outcomes);
       endSpin();
     };
 
     const handleSpinRejected = (payload: SpinRejectedPayload): void => {
-      console.error('[Spin] Rejected:', payload.reason);
+      logger.error('[Spin] Rejected:', payload.reason);
       const messages: Record<string, string> = {
         NOT_OWNER: '방장만 랜덤 뽑기를 할 수 있습니다',
         ALREADY_SPINNING: '이미 랜덤 뽑기가 진행 중입니다',

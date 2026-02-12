@@ -11,6 +11,7 @@ import { showConfirm, showAlert } from '@/shared/store/alert.store';
 import type { Role } from '@/entities/room/model/room.types';
 import { SOCKET_EVENTS } from '@/entities/room/model/websocket.types';
 import { useRouter } from 'next/navigation';
+import { logger } from '@/shared/lib/logger';
 
 interface RoomPageProps {
   roomId: string;
@@ -45,7 +46,7 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
 
   // Debug logging
   useEffect(() => {
-    console.log('[RoomPage] Component state:', {
+    logger.log('[RoomPage] Component state:', {
       roomId,
       role,
       initialNickname,
@@ -61,12 +62,12 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
     if (!socket) return;
 
     const handleRoomClosed = (): void => {
-      console.log('[RoomPage] Room closed, disabling reconnect dialog');
+      logger.log('[RoomPage] Room closed, disabling reconnect dialog');
       isRoomClosed.current = true;
     };
 
     const handleRoomDeleted = (): void => {
-      console.log('[RoomPage] Room deleted, disabling reconnect dialog');
+      logger.log('[RoomPage] Room deleted, disabling reconnect dialog');
       isRoomClosed.current = true;
     };
 
@@ -85,11 +86,11 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
 
     const handleDisconnect = (reason: string): void => {
       const roleLabel = role === 'owner' ? 'Owner' : 'Participant';
-      console.log(`[RoomPage] ${roleLabel} disconnected:`, reason);
+      logger.log(`[RoomPage] ${roleLabel} disconnected:`, reason);
 
       // 방이 닫힌 경우 재연결 다이얼로그 표시하지 않음
       if (isRoomClosed.current) {
-        console.log('[RoomPage] Room was closed, skipping reconnect dialog');
+        logger.log('[RoomPage] Room was closed, skipping reconnect dialog');
         return;
       }
 
@@ -105,13 +106,13 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
         confirmText: '재연결',
         cancelText: '나가기',
         onConfirm: () => {
-          console.log(`[RoomPage] ${roleLabel} attempting to reconnect...`);
+          logger.log(`[RoomPage] ${roleLabel} attempting to reconnect...`);
           // 소켓 재연결 시도
           socket.connect();
 
           // 재연결 성공 시 room:join 재전송을 위한 일회성 핸들러
           const handleReconnect = (): void => {
-            console.log(`[RoomPage] ${roleLabel} reconnected, rejoining room...`);
+            logger.log(`[RoomPage] ${roleLabel} reconnected, rejoining room...`);
             const joinPayload = {
               roomId,
               role,
@@ -124,7 +125,7 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
 
           // 재연결 실패 처리
           const handleReconnectFailed = (): void => {
-            console.log(`[RoomPage] ${roleLabel} reconnection failed`);
+            logger.log(`[RoomPage] ${roleLabel} reconnection failed`);
             showAlert('재연결 실패', '서버에 연결할 수 없습니다. 메인 화면으로 이동합니다.');
             setTimeout(() => {
               router.replace('/');
@@ -148,7 +149,7 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
           }, 5000);
         },
         onCancel: () => {
-          console.log(`[RoomPage] ${roleLabel} chose to leave`);
+          logger.log(`[RoomPage] ${roleLabel} chose to leave`);
           router.replace('/');
         }
       });
@@ -179,7 +180,7 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
 
   // Join room when connected and ready
   useEffect(() => {
-    console.log('[RoomPage] Join effect triggered:', {
+    logger.log('[RoomPage] Join effect triggered:', {
       connected: socket?.connected,
       myNickname,
       role,
@@ -188,13 +189,13 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
 
     if (!socket?.connected || myNickname) {
       // Not connected or already joined
-      console.log('[RoomPage] Skipping join - not connected or already joined');
+      logger.log('[RoomPage] Skipping join - not connected or already joined');
       return;
     }
 
     // For participants without nickname, don't join yet
     if (role === 'participant' && !nickname.trim()) {
-      console.log('[RoomPage] Skipping join - participant without nickname');
+      logger.log('[RoomPage] Skipping join - participant without nickname');
       return;
     }
 
@@ -205,7 +206,7 @@ export const RoomPage: React.FC<RoomPageProps> = ({ roomId, role, initialNicknam
       nickname: nickname.trim() || undefined
     };
 
-    console.log('[RoomPage] Sending room:join event:', joinPayload);
+    logger.log('[RoomPage] Sending room:join event:', joinPayload);
     socket.emit(SOCKET_EVENTS.ROOM_JOIN, joinPayload);
   }, [socket, socket?.connected, roomId, role, nickname, myNickname]);
 
