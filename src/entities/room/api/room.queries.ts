@@ -1,8 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/shared/api/client';
-import { toast } from 'sonner';
 import { AxiosError } from 'axios';
-import type { CreateRoomRequest, CreateRoomResponse, GetRoomsResponse } from '../model/room.types';
+import type {
+  CreateRoomRequest,
+  CreateRoomResponse,
+  GetRoomsResponse,
+  RoomApiErrorResponse
+} from '../model/room.types';
+import { RoomErrorCode } from '../model/room.types';
 import { logger } from '@/shared/lib/logger';
 
 export const roomKeys = {
@@ -28,18 +33,9 @@ export function useRoomsQuery() {
 }
 
 /**
- * API 에러 응답 타입
+ * 방 생성 에러 메시지 생성 (백엔드 가이드 기준)
  */
-interface ApiErrorResponse {
-  message?: string;
-  code?: string;
-  details?: string;
-}
-
-/**
- * 방 생성 에러 메시지 생성
- */
-function getCreateRoomErrorMessage(error: AxiosError<ApiErrorResponse>): string {
+export function getCreateRoomErrorMessage(error: AxiosError<RoomApiErrorResponse>): string {
   // 타임아웃 에러
   if (error.code === 'ECONNABORTED') {
     return '서버 응답이 없습니다. 잠시 후 다시 시도해주세요.';
@@ -54,10 +50,14 @@ function getCreateRoomErrorMessage(error: AxiosError<ApiErrorResponse>): string 
 
   // 백엔드에서 제공한 에러 메시지 우선 사용
   if (data?.message) {
+    // INTERNAL_ERROR 등 영문 메시지인 경우 사용자 친화적 메시지로 변환
+    if (data.errorCode === RoomErrorCode.INTERNAL_ERROR && data.message === 'An unexpected error occurred') {
+      return '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+    }
     return data.message;
   }
 
-  // HTTP 상태 코드별 기본 메시지
+  // HTTP 상태 코드별 기본 메시지 (백엔드 메시지가 없을 때 폴백)
   switch (status) {
     case 400:
       return '잘못된 요청입니다. 입력 정보를 확인해주세요.';
@@ -84,6 +84,15 @@ function getCreateRoomErrorMessage(error: AxiosError<ApiErrorResponse>): string 
 }
 
 /**
+ * 방 생성 에러 정보 추출 (메시지 + 에러코드)
+ */
+export function getCreateRoomError(error: AxiosError<RoomApiErrorResponse>): { message: string; errorCode?: string } {
+  const message = getCreateRoomErrorMessage(error);
+  const errorCode = error.response?.data?.errorCode;
+  return { message, errorCode };
+}
+
+/**
  * 방 생성 Mutation Hook
  */
 export function useCreateRoomMutation() {
@@ -98,13 +107,11 @@ export function useCreateRoomMutation() {
       // 방 목록 캐시 무효화
       void queryClient.invalidateQueries({ queryKey: roomKeys.lists() });
     },
-    onError: (error: AxiosError<ApiErrorResponse>) => {
+    onError: (error: AxiosError<RoomApiErrorResponse>) => {
       logger.error('방 생성 실패:', error);
 
-      const errorMessage = getCreateRoomErrorMessage(error);
-      toast.error(errorMessage, {
-        duration: 4000
-      });
+      // CreateRoomStepper에서 직접 에러를 처리하므로 toast는 생략
+      // (중복 메시지 방지)
     }
   });
 }

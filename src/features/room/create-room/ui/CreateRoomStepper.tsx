@@ -10,12 +10,19 @@ import { Button } from '@/shared/ui/Button';
 import { Spinner } from '@/shared/ui/Spinner';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import { useCreateRoomMutation } from '@/entities/room/api/room.queries';
+import { useCreateRoomMutation, getCreateRoomError } from '@/entities/room/api/room.queries';
 import { saveOwnedRoom } from '@/entities/room/lib/room_storage';
-import type { WinSentiment, CreateRoomResponse } from '@/entities/room/model/room.types';
+import type { WinSentiment, CreateRoomResponse, RoomApiErrorResponse } from '@/entities/room/model/room.types';
+import type { AxiosError } from 'axios';
 
 /** 로딩 UI가 표시되는 최소 시간 (ms) */
 const MIN_LOADING_MS = 2500;
+
+/** Rate Limit 쿨다운 저장 키 (sessionStorage) */
+const RATE_LIMIT_COOLDOWN_KEY = 'roomCreateRateLimitUntil';
+
+/** Rate Limit 쿨다운 시간 (ms) */
+const RATE_LIMIT_COOLDOWN_MS = 60000; // 60초
 
 interface CreateRoomStepperProps {
   onComplete?: () => void;
@@ -32,12 +39,38 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [createdRoomData, setCreatedRoomData] = useState<CreateRoomResponse | null>(null);
   const [createRoomError, setCreateRoomError] = useState<string | null>(null);
+  const [createRoomErrorCode, setCreateRoomErrorCode] = useState<string | null>(null);
+  const [rateLimitCooldown, setRateLimitCooldown] = useState<number>(0);
 
   const { mutate: createRoom, isPending } = useCreateRoomMutation();
+
+  // Rate limit 쿨다운 체크 (마운트 시 및 주기적으로)
+  useEffect(() => {
+    const checkRateLimitCooldown = (): void => {
+      const cooldownUntil = sessionStorage.getItem(RATE_LIMIT_COOLDOWN_KEY);
+      if (cooldownUntil) {
+        const remaining = parseInt(cooldownUntil, 10) - Date.now();
+        if (remaining > 0) {
+          setRateLimitCooldown(remaining);
+        } else {
+          sessionStorage.removeItem(RATE_LIMIT_COOLDOWN_KEY);
+          setRateLimitCooldown(0);
+        }
+      }
+    };
+
+    checkRateLimitCooldown();
+    const interval = setInterval(checkRateLimitCooldown, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const isNextDisabled = (step: number): boolean => {
     if (step === 1) {
       return !title.trim();
+    }
+    if (step === 3) {
+      // 3번째 스텝: Rate limit 쿨다운 중이면 비활성화
+      return rateLimitCooldown > 0;
     }
     if (step === 4) {
       // 4번째 스텝: 생성 완료 또는 에러 발생 시에만 활성화
@@ -89,17 +122,29 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
             setIsCreating(false);
           }
         },
-        onError: () => {
+        onError: (error: AxiosError) => {
           const elapsed = Date.now() - startedAt;
           const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
 
+          // API 에러 메시지 및 에러 코드 추출
+          const { message, errorCode } = getCreateRoomError(error as AxiosError<RoomApiErrorResponse>);
+
+          // Rate limit 에러 처리
+          if (errorCode === 'RATE_LIMIT_EXCEEDED') {
+            const cooldownUntil = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+            sessionStorage.setItem(RATE_LIMIT_COOLDOWN_KEY, String(cooldownUntil));
+            setRateLimitCooldown(RATE_LIMIT_COOLDOWN_MS);
+          }
+
           if (remaining > 0) {
             setTimeout(() => {
-              setCreateRoomError('방 생성에 실패했습니다. 다시 시도해주세요.');
+              setCreateRoomError(message);
+              setCreateRoomErrorCode(errorCode || null);
               setIsCreating(false);
             }, remaining);
           } else {
-            setCreateRoomError('방 생성에 실패했습니다. 다시 시도해주세요.');
+            setCreateRoomError(message);
+            setCreateRoomErrorCode(errorCode || null);
             setIsCreating(false);
           }
         }
@@ -116,6 +161,77 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
 
   const handleCloseModal = (): void => {
     onComplete?.();
+  };
+
+  const handleRetry = (): void => {
+    // 에러 상태 초기화 후 재시도
+    setCreateRoomError(null);
+    setCreateRoomErrorCode(null);
+    setIsCreating(true);
+
+    const request: {
+      title: string;
+      nickname?: string;
+      winnersCount?: number;
+      winSentiment?: WinSentiment;
+    } = {
+      title: title.trim()
+    };
+
+    if (nickname.trim()) {
+      request.nickname = nickname.trim();
+    }
+    if (winnersCount > 0) {
+      request.winnersCount = winnersCount;
+    }
+    if (winSentiment) {
+      request.winSentiment = winSentiment;
+    }
+
+    const startedAt = Date.now();
+
+    createRoom(request, {
+      onSuccess: response => {
+        const elapsed = Date.now() - startedAt;
+        const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
+
+        if (remaining > 0) {
+          setTimeout(() => {
+            setCreatedRoomData(response);
+            saveOwnedRoom(response.roomId);
+            setIsCreating(false);
+          }, remaining);
+        } else {
+          setCreatedRoomData(response);
+          saveOwnedRoom(response.roomId);
+          setIsCreating(false);
+        }
+      },
+      onError: (error: AxiosError) => {
+        const elapsed = Date.now() - startedAt;
+        const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
+
+        const { message, errorCode } = getCreateRoomError(error as AxiosError<RoomApiErrorResponse>);
+
+        if (errorCode === 'RATE_LIMIT_EXCEEDED') {
+          const cooldownUntil = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+          sessionStorage.setItem(RATE_LIMIT_COOLDOWN_KEY, String(cooldownUntil));
+          setRateLimitCooldown(RATE_LIMIT_COOLDOWN_MS);
+        }
+
+        if (remaining > 0) {
+          setTimeout(() => {
+            setCreateRoomError(message);
+            setCreateRoomErrorCode(errorCode || null);
+            setIsCreating(false);
+          }, remaining);
+        } else {
+          setCreateRoomError(message);
+          setCreateRoomErrorCode(errorCode || null);
+          setIsCreating(false);
+        }
+      }
+    });
   };
 
   const getCompleteButtonText = (): string => {
@@ -347,6 +463,14 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
                 <span>준비 상태 확인</span>
               </div>
             </div>
+
+            {rateLimitCooldown > 0 && (
+              <div className="mt-4 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                <p className="text-sm text-center text-yellow-600">
+                  너무 많은 요청을 보냈습니다. {Math.ceil(rateLimitCooldown / 1000)}초 후 다시 시도할 수 있습니다.
+                </p>
+              </div>
+            )}
           </div>
         </Step>
 
@@ -355,9 +479,11 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
             isCreating={isCreating}
             createdRoomData={createdRoomData}
             createRoomError={createRoomError}
+            createRoomErrorCode={createRoomErrorCode}
             title={title}
             winnersCount={winnersCount}
             winSentiment={winSentiment}
+            onRetry={handleRetry}
           />
         </Step>
       </Stepper>
@@ -369,9 +495,11 @@ interface LoadingStepProps {
   isCreating: boolean;
   createdRoomData: CreateRoomResponse | null;
   createRoomError: string | null;
+  createRoomErrorCode: string | null;
   title: string;
   winnersCount: number;
   winSentiment: WinSentiment;
+  onRetry: () => void;
 }
 
 const loadingSteps = [
@@ -385,9 +513,11 @@ function LoadingStep({
   isCreating,
   createdRoomData,
   createRoomError,
+  createRoomErrorCode,
   title,
   winnersCount,
-  winSentiment
+  winSentiment,
+  onRetry
 }: LoadingStepProps): React.ReactElement {
   const [activeStepIndex, setActiveStepIndex] = useState<number>(0);
 
@@ -428,6 +558,12 @@ function LoadingStep({
 
   // 에러 상태
   if (createRoomError) {
+    // 500 계열 에러: 재시도 가능
+    const isRetryableError =
+      createRoomErrorCode === 'ROOM_CREATION_FAILED' ||
+      createRoomErrorCode === 'DATABASE_ERROR' ||
+      createRoomErrorCode === 'INTERNAL_ERROR';
+
     return (
       <div className="flex flex-col items-center justify-center space-y-6 py-8">
         <div className="flex flex-col items-center gap-4">
@@ -438,8 +574,17 @@ function LoadingStep({
           </div>
         </div>
         <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 w-full">
-          <p className="text-sm text-center text-destructive">오류가 발생했습니다. 다시 시도해주세요.</p>
+          <p className="text-sm text-center text-destructive">오류가 발생했습니다.</p>
         </div>
+        {isRetryableError && (
+          <Button
+            onClick={onRetry}
+            variant="outline"
+            className="w-full max-w-xs border-blue-500 text-blue-600 hover:bg-blue-50"
+          >
+            재시도
+          </Button>
+        )}
       </div>
     );
   }
