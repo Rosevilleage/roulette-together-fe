@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { Label } from '@/shared/ui/Label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/Select';
+import { Spinner } from '@/shared/ui/Spinner';
 import { useCreateRoomMutation } from '@/entities/room/api/room.queries';
 import { saveOwnedRoom } from '@/entities/room/lib/room_storage';
 import type { WinSentiment } from '@/entities/room/model/room.types';
@@ -97,12 +98,22 @@ export const CreateRoomForm: React.FC = () => {
 
       {error && (
         <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-          <p className="text-sm text-destructive">방 생성에 실패했습니다. 다시 시도해주세요.</p>
+          <p className="text-sm text-destructive text-center">
+            방 생성에 실패했습니다.
+            <br />
+            다시 시도해주세요.
+          </p>
         </div>
       )}
 
       <Button size="lg" onClick={handleCreateRoom} disabled={isPending} className="w-full h-12 text-base font-semibold">
-        {isPending ? '방 만드는 중...' : '방 만들기'}
+        {isPending ? (
+          <span className="flex items-center gap-2">
+            <Spinner className="size-4 text-primary-foreground" />방 만드는 중...
+          </span>
+        ) : (
+          '방 만들기'
+        )}
       </Button>
     </div>
   );
