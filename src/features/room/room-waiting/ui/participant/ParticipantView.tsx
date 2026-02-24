@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useRoomStore } from '@/entities/room/model/room.store';
 import { useSocket } from '@/shared/hooks/useSocket';
 import { Badge } from '@/shared/ui/Badge';
@@ -14,6 +15,8 @@ import { cn } from '@/shared/lib/utils';
 export const ParticipantView: React.FC = () => {
   const socket = useSocket();
   const { roomId, myNickname, myReady, roomTitle, spin } = useRoomStore();
+  // config 객체 전체 대신 winSentiment 원시값만 구독 → 불필요한 리렌더 방지
+  const winSentiment = useRoomStore(s => s.config?.winSentiment ?? 'POSITIVE');
 
   const { phase, dismissBackdrop, showBackdrop, showLightBeam, hasAnswer, canClick } = useParticipantCardAnimation({
     myReady,
@@ -26,16 +29,15 @@ export const ParticipantView: React.FC = () => {
 
   const isReady = phase === 'ready';
 
-  const getCardVariant = (): 'default' | 'blue' | 'yellow' | 'pink' => {
-    if (isReady) {
-      return 'blue';
-    }
+  const cardVariant = useMemo((): 'default' | 'blue' | 'yellow' | 'pink' => {
+    if (isReady) return 'blue';
     if (phase === 'landed' || phase === 'flip') {
-      return spin?.myOutcome === 'WIN' ? 'yellow' : 'pink';
-    } else {
-      return 'default';
+      const isWin = spin?.myOutcome === 'WIN';
+      // 부정적 방: 당첨(벌칙)→pink, 미당첨(안전)→yellow / 긍정적 방: 당첨→yellow, 미당첨→pink
+      return winSentiment === 'NEGATIVE' ? (isWin ? 'pink' : 'yellow') : isWin ? 'yellow' : 'pink';
     }
-  };
+    return 'default';
+  }, [isReady, phase, spin?.myOutcome, winSentiment]);
 
   const handleToggleReady = (): void => {
     if (!socket || !roomId || !canClick) {
@@ -137,7 +139,7 @@ export const ParticipantView: React.FC = () => {
                   WebkitBackfaceVisibility: 'hidden'
                 }}
               >
-                <PixelCard variant={getCardVariant()} className={cn('w-full')} doAnimation={isReady || hasAnswer}>
+                <PixelCard variant={cardVariant} className={cn('w-full')} doAnimation={isReady || hasAnswer}>
                   <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
                     <ParticipantCardContent phase={phase} outcome={spin?.myOutcome} />
                   </div>
