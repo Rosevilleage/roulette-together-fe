@@ -3,7 +3,7 @@
 친구나 팀원과 함께 실시간으로 랜덤 뽑기를 할 수 있는 웹 애플리케이션입니다.  
 방장이 방을 생성하고, 참가자들이 QR 코드나 링크로 입장한 뒤, 방장이 뽑기를 실행하면 결과가 모두에게 동시에 전달됩니다.
 
-**배포:** https://roulette-together.vercel.app  
+**배포:** https://roulette-together.com
 **백엔드 저장소:** (Socket.IO 기반 Node.js 서버)
 
 ---
