@@ -4,12 +4,11 @@ import { logger } from '@/shared/lib/logger';
 
 // Global socket instance - shared across all components (client-side only)
 let globalSocket: Socket | null = null;
-const SOCKET_PATH = '/socket.io';
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080';
 
 function getOrCreateSocket(): Socket {
   if (!globalSocket) {
-    globalSocket = io('/', {
-      path: SOCKET_PATH,
+    globalSocket = io(WS_URL, {
       transports: ['websocket'],
       reconnection: true,
       reconnectionAttempts: 5,

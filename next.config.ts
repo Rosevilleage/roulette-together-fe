@@ -17,20 +17,6 @@ const nextConfig: NextConfig = {
             exclude: ['error'] // critical error는 유지
           }
         : false
-  },
-  async rewrites() {
-    const apiServerUrl = process.env.API_URL ?? 'http://localhost:8080';
-
-    return [
-      {
-        source: '/api-proxy/:path*',
-        destination: `${apiServerUrl}/:path*`
-      },
-      {
-        source: '/socket.io/:path*',
-        destination: `${apiServerUrl}/socket.io/:path*`
-      }
-    ];
   }
 };
 
