@@ -5,13 +5,12 @@ import { logger } from '@/shared/lib/logger';
 // Global socket instance - shared across all components (client-side only)
 let globalSocket: Socket | null = null;
 const SOCKET_PATH = '/socket.io';
-const SOCKET_SERVER_URL = process.env.NEXT_PUBLIC_WS_URL || '/';
 
 function getOrCreateSocket(): Socket {
   if (!globalSocket) {
-    globalSocket = io(SOCKET_SERVER_URL, {
+    globalSocket = io('/', {
       path: SOCKET_PATH,
-      transports: ['websocket', 'polling'],
+      transports: ['websocket'],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
