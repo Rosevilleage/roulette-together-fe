@@ -2,14 +2,13 @@ import { useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { logger } from '@/shared/lib/logger';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080';
-
 // Global socket instance - shared across all components (client-side only)
 let globalSocket: Socket | null = null;
 
 function getOrCreateSocket(): Socket {
   if (!globalSocket) {
-    globalSocket = io(WS_URL, {
+    globalSocket = io('/', {
+      path: '/socket.io',
       transports: ['websocket'],
       reconnection: true,
       reconnectionAttempts: 5,

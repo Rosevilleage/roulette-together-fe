@@ -112,7 +112,7 @@ let globalSocket: Socket | null = null;
 
 function getOrCreateSocket(): Socket {
   if (!globalSocket) {
-    globalSocket = io(WS_URL, { transports: ['websocket'], autoConnect: false });
+    globalSocket = io('/', { path: '/socket.io', transports: ['websocket'], autoConnect: false });
   }
   if (!globalSocket.connected) globalSocket.connect();
   return globalSocket;
@@ -176,8 +176,7 @@ Next.js App Router 환경에서 `window`, `document`에 의존하는 Socket.IO�
 `.env.local` 파일을 생성합니다:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8080
-NEXT_PUBLIC_WS_URL=http://localhost:8080
+API_URL=http://localhost:8080
 NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
 ```
 

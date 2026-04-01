@@ -1,10 +1,10 @@
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { logger } from '@/shared/lib/logger';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_PROXY_BASE_URL = '/api-proxy';
 
 export const apiClient = axios.create({
-  baseURL: `${API_BASE_URL}/v1`,
+  baseURL: `${API_PROXY_BASE_URL}/v1`,
   timeout: 10000,
   withCredentials: true,
   headers: {
