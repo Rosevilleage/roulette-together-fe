@@ -1,6 +1,7 @@
 const DEFAULT_LOCAL_ORIGIN = 'http://localhost:8080';
 
 const PRODUCTION_ONLY_HTTPS_PROTOCOL = 'https:';
+const PRODUCTION_ONLY_WSS_PROTOCOL = 'wss:';
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1']);
 
 const normalizeOrigin = (origin: string): string => {
@@ -21,7 +22,10 @@ const getPublicOrigin = (envName: 'NEXT_PUBLIC_API_URL' | 'NEXT_PUBLIC_WS_URL'):
   return DEFAULT_LOCAL_ORIGIN;
 };
 
-const assertHttpsInProduction = (url: string, envName: 'NEXT_PUBLIC_API_URL' | 'NEXT_PUBLIC_WS_URL'): string => {
+const assertSecureProtocolInProduction = (
+  url: string,
+  envName: 'NEXT_PUBLIC_API_URL' | 'NEXT_PUBLIC_WS_URL'
+): string => {
   if (process.env.NODE_ENV !== 'production') {
     return url;
   }
@@ -31,8 +35,12 @@ const assertHttpsInProduction = (url: string, envName: 'NEXT_PUBLIC_API_URL' | '
     return url;
   }
 
-  if (parsed.protocol !== PRODUCTION_ONLY_HTTPS_PROTOCOL) {
-    throw new Error(`[Config] ${envName} must use https in production. Received: ${url}`);
+  const isApiEnv = envName === 'NEXT_PUBLIC_API_URL';
+  const allowedProtocol = isApiEnv ? PRODUCTION_ONLY_HTTPS_PROTOCOL : PRODUCTION_ONLY_WSS_PROTOCOL;
+
+  if (parsed.protocol !== allowedProtocol) {
+    const expected = isApiEnv ? 'https' : 'wss';
+    throw new Error(`[Config] ${envName} must use ${expected}:// in production. Received: ${url}`);
   }
 
   return url;
@@ -40,10 +48,10 @@ const assertHttpsInProduction = (url: string, envName: 'NEXT_PUBLIC_API_URL' | '
 
 export const getApiBaseUrl = (): string => {
   const apiOrigin = getPublicOrigin('NEXT_PUBLIC_API_URL');
-  return assertHttpsInProduction(apiOrigin, 'NEXT_PUBLIC_API_URL');
+  return assertSecureProtocolInProduction(apiOrigin, 'NEXT_PUBLIC_API_URL');
 };
 
 export const getWebSocketBaseUrl = (): string => {
   const wsOrigin = getPublicOrigin('NEXT_PUBLIC_WS_URL');
-  return assertHttpsInProduction(wsOrigin, 'NEXT_PUBLIC_WS_URL');
+  return assertSecureProtocolInProduction(wsOrigin, 'NEXT_PUBLIC_WS_URL');
 };
