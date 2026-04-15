@@ -1,6 +1,17 @@
 import type { NextConfig } from 'next';
 
+const isStaticExportBuild = process.env.NEXT_BUILD_OUTPUT === 'export';
+
 const nextConfig: NextConfig = {
+  ...(isStaticExportBuild
+    ? {
+        output: 'export',
+        images: {
+          unoptimized: true
+        }
+      }
+    : {}),
+
   // lucide-react barrel file import 최적화 (bundle-barrel-imports)
   // https://vercel.com/blog/how-we-optimized-package-imports-in-next-js
   experimental: {

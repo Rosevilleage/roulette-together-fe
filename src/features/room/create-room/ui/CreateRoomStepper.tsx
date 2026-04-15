@@ -13,6 +13,7 @@ import { cn } from '@/shared/lib/utils';
 import { useCreateRoomMutation, getCreateRoomError } from '@/entities/room/api/room.queries';
 import { saveOwnedRoom } from '@/entities/room/lib/room_storage';
 import type { WinSentiment, CreateRoomResponse, RoomApiErrorResponse } from '@/entities/room/model/room.types';
+import { buildRoomPath } from '@/shared/lib/room-url';
 import type { AxiosError } from 'axios';
 
 /** 로딩 UI가 표시되는 최소 시간 (ms) */
@@ -154,7 +155,7 @@ export const CreateRoomStepper: React.FC<CreateRoomStepperProps> = ({ onComplete
 
   const handleEnterRoom = (): void => {
     if (createdRoomData) {
-      router.push(`/room/${createdRoomData.roomId}?role=owner`);
+      router.push(buildRoomPath(createdRoomData.roomId, 'owner'));
       onComplete?.();
     }
   };
@@ -540,13 +541,15 @@ function LoadingStep({
           {loadingSteps.map((step, index) => (
             <motion.div
               key={step.text}
-              initial={{ opacity: 0.4, color: 'hsl(var(--muted-foreground))' }}
+              initial={{ opacity: 0.4 }}
               animate={{
-                opacity: index <= activeStepIndex ? 1 : 0.4,
-                color: index <= activeStepIndex ? '#5227FF' : 'hsl(var(--muted-foreground))'
+                opacity: index <= activeStepIndex ? 1 : 0.4
               }}
               transition={{ duration: 0.5 }}
-              className="text-sm font-medium"
+              className={cn(
+                'text-sm font-medium transition-colors duration-500',
+                index <= activeStepIndex ? 'text-[#5227FF]' : 'text-muted-foreground'
+              )}
             >
               {step.text}
             </motion.div>

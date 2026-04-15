@@ -10,6 +10,7 @@ import { Spinner } from '@/shared/ui/Spinner';
 import { useCreateRoomMutation } from '@/entities/room/api/room.queries';
 import { saveOwnedRoom } from '@/entities/room/lib/room_storage';
 import type { WinSentiment } from '@/entities/room/model/room.types';
+import { buildRoomPath } from '@/shared/lib/room-url';
 import { UsersIcon, TrophyIcon } from 'lucide-react';
 
 export const CreateRoomForm: React.FC = () => {
@@ -33,7 +34,7 @@ export const CreateRoomForm: React.FC = () => {
           saveOwnedRoom(response.roomId);
 
           // 방으로 이동 (쿠키에 토큰이 자동으로 설정됨)
-          router.push(`/room/${response.roomId}?role=owner`);
+          router.push(buildRoomPath(response.roomId, 'owner'));
         }
       }
     );

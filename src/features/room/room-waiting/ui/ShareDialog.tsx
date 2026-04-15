@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/shared/ui/Dialog';
+import { buildRoomAbsoluteUrl } from '@/shared/lib/room-url';
 import { Button } from '@/shared/ui/Button';
 import { QrCodeIcon, LinkIcon, CopyIcon, CheckIcon, Share2Icon } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
@@ -23,7 +24,9 @@ export const ShareDialog: React.FC<ShareDialogProps> = ({ open, onOpenChange, ro
   const [copied, setCopied] = useState(false);
   const [canShare] = useState(getCanShare);
 
-  const shareUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000'}/room/${roomId}?role=participant`;
+  const fallbackOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+  const frontendOrigin = process.env.NEXT_PUBLIC_FRONTEND_URL || fallbackOrigin;
+  const shareUrl = buildRoomAbsoluteUrl(frontendOrigin, roomId, 'participant');
 
   const handleCopy = useCallback(async (): Promise<void> => {
     try {

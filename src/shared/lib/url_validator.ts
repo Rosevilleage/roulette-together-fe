@@ -1,12 +1,15 @@
 'use client';
 
+import type { Role } from '@/entities/room/model/room.types';
+import { buildRoomPath } from '@/shared/lib/room-url';
+
 /**
  * URL 검증 결과 타입
  */
 export interface UrlValidationResult {
   isValid: boolean;
   reason?: string;
-  sanitizedPath?: string; // 예: /room/abc123?role=participant
+  sanitizedPath?: string; // 예: /room?roomId=abc123&role=participant
 }
 
 /**
@@ -40,7 +43,33 @@ function getAllowedHostnames(): string[] {
     hostnames.push('localhost', '127.0.0.1');
   }
 
-  return hostnames;
+  if (typeof window !== 'undefined') {
+    hostnames.push(window.location.hostname);
+  }
+
+  return [...new Set(hostnames)];
+}
+
+function parseRole(role: string | null): Role {
+  if (role === 'owner' || role === 'participant') {
+    return role;
+  }
+
+  return 'participant';
+}
+
+function extractRoomId(url: URL): string | null {
+  const roomIdFromQuery = url.searchParams.get('roomId');
+  if (roomIdFromQuery) {
+    return roomIdFromQuery;
+  }
+
+  // Legacy URL 지원: /room/<roomId>
+  if (url.pathname.startsWith('/room/')) {
+    return url.pathname.replace('/room/', '').split('/')[0] || null;
+  }
+
+  return null;
 }
 
 /**
@@ -90,23 +119,21 @@ export function validateRoomUrl(input: string): UrlValidationResult {
 
   // 6. 경로 패턴 검증
   const pathname = url.pathname;
-  if (!pathname.startsWith('/room/')) {
+  const isRoomPath = pathname === '/room' || pathname.startsWith('/room/');
+  if (!isRoomPath) {
     return { isValid: false, reason: '올바른 방 링크가 아닙니다.' };
   }
 
   // 7. roomId 추출 및 검증
-  const roomId = pathname.replace('/room/', '').split('/')[0];
+  const roomId = extractRoomId(url);
   if (!roomId || !ROOM_ID_PATTERN.test(roomId)) {
     return { isValid: false, reason: '올바른 방 링크가 아닙니다.' };
   }
 
   // 8. 안전한 경로 생성 (role 파라미터 기본값 처리)
-  const searchParams = new URLSearchParams(url.search);
-  if (!searchParams.has('role')) {
-    searchParams.set('role', 'participant');
-  }
-
-  const sanitizedPath = `/room/${roomId}?${searchParams.toString()}`;
+  const role = parseRole(url.searchParams.get('role'));
+  const nickname = url.searchParams.get('nickname') || undefined;
+  const sanitizedPath = buildRoomPath(roomId, role, nickname);
 
   return { isValid: true, sanitizedPath };
 }

@@ -1,40 +1,43 @@
 'use client';
 
-import { useParams, useSearchParams } from 'next/navigation';
-import { RoomPage } from '@/page-components/RoomPage';
-import { ReactElement, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import type { ReactElement } from 'react';
+import { useEffect, useMemo } from 'react';
 import { isOwnedRoom } from '@/entities/room/lib/room_storage';
 import type { Role } from '@/entities/room/model/room.types';
 import { RoomHeader } from '@/features/room/room-waiting/ui/RoomHeader';
+import { RoomPage } from '@/page-components/RoomPage';
 import { disconnectSocket } from '@/shared/hooks/useSocket';
 
-export default function Page(): ReactElement {
-  const params = useParams();
+const DEFAULT_ROLE: Role = 'participant';
+
+const parseRole = (value: string | null): Role | null => {
+  if (value === 'owner' || value === 'participant') {
+    return value;
+  }
+
+  return null;
+};
+
+export function RoomClientContent(): ReactElement {
   const searchParams = useSearchParams();
 
-  const roomId = params?.roomId as string;
-  const urlRole = searchParams?.get('role') as 'owner' | 'participant' | null;
-  const initialNickname = searchParams?.get('nickname');
+  const roomId = searchParams.get('roomId') || '';
+  const urlRole = parseRole(searchParams.get('role'));
+  const initialNickname = searchParams.get('nickname');
 
-  // localStorage를 확인하여 role 결정
-  // 1. URL에 role이 명시된 경우 사용
-  // 2. URL에 role이 없으면 localStorage 확인하여 생성한 방인지 판단
   const role: Role = useMemo(() => {
     if (urlRole) {
       return urlRole;
     }
 
-    // localStorage에서 생성한 방인지 확인
     if (isOwnedRoom(roomId)) {
       return 'owner';
     }
 
-    // 그 외는 참가자로 취급
-    return 'participant';
+    return DEFAULT_ROLE;
   }, [roomId, urlRole]);
 
-  // 방 페이지를 떠날 때 소켓 연결 해제
-  // 새 방 입장 시 새 쿠키로 재연결할 수 있도록 함
   useEffect(() => {
     return () => {
       disconnectSocket();

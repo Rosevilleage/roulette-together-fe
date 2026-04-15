@@ -7,6 +7,7 @@ import { Button } from '@/shared/ui/Button';
 import { Input } from '@/shared/ui/Input';
 import { Label } from '@/shared/ui/Label';
 import { useAlertStore } from '@/shared/store/alert.store';
+import { buildRoomPath } from '@/shared/lib/room-url';
 import { validateRoomUrl } from '@/shared/lib/url_validator';
 import { ArrowLeftIcon, QrCodeIcon, ClockIcon, TrashIcon } from 'lucide-react';
 import {
@@ -64,7 +65,7 @@ export default function JoinPage(): ReactElement {
   // 최근 방문한 방으로 참가
   const handleJoinVisitedRoom = useCallback(
     (room: VisitedRoomInfo): void => {
-      router.push(`/room/${room.roomId}?role=participant`);
+      router.push(buildRoomPath(room.roomId, 'participant'));
     },
     [router]
   );
@@ -182,7 +183,7 @@ export default function JoinPage(): ReactElement {
             <Input
               id="room-url"
               type="text"
-              placeholder="https://example.com/room/..."
+              placeholder="https://example.com/room?roomId=..."
               value={roomUrl}
               onChange={e => setRoomUrl(e.target.value)}
             />

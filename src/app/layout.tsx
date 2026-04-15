@@ -21,7 +21,7 @@ const siteConfig = {
   name: '당첨?당첨!',
   title: '당첨?당첨! - 실시간 랜덤 뽑기',
   description: '친구들과 함께 실시간으로 랜덤 뽑기를 해보세요',
-  url: process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://roulette-together.com',
+  url: process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://roulette-together.com',
   locale: 'ko_KR'
 };
 

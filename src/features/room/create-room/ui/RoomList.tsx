@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { useRoomsQuery } from '@/entities/room/api/room.queries';
+import { buildRoomPath } from '@/shared/lib/room-url';
 import { Card } from '@/shared/ui/Card';
 import { Button } from '@/shared/ui/Button';
 import { TrophyIcon, Clock } from 'lucide-react';
@@ -27,7 +28,7 @@ export const RoomList: React.FC = () => {
   const now = dataUpdatedAt;
 
   const handleRoomClick = (roomId: string): void => {
-    router.push(`/room/${roomId}?role=owner`);
+    router.push(buildRoomPath(roomId, 'owner'));
   };
 
   if (isLoading) {

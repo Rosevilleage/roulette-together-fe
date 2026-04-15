@@ -4,7 +4,7 @@
 
 /**
  * v2.5 업데이트: ownerUrl, participantUrl 필드 제거
- * URL은 프론트엔드에서 직접 생성: /room/${roomId}?role=owner 또는 /room/${roomId}?role=participant
+ * URL은 프론트엔드에서 직접 생성: /room?roomId=${roomId}&role=owner 또는 /room?roomId=${roomId}&role=participant
  */
 export interface CreateRoomResponse {
   roomId: string;
