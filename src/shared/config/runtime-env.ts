@@ -8,8 +8,18 @@ const normalizeOrigin = (origin: string): string => {
   return origin.trim().replace(/\/+$/, '');
 };
 
+const resolvePublicEnv = (envName: 'NEXT_PUBLIC_API_URL' | 'NEXT_PUBLIC_WS_URL'): string | undefined => {
+  // Next.js는 빌드 타임에 process.env.NEXT_PUBLIC_* 를 정적 치환합니다.
+  // 동적 bracket 접근(process.env[variable])은 webpack DefinePlugin이 치환하지 못하므로
+  // 반드시 정적 프로퍼티 접근으로 분기해야 합니다.
+  if (envName === 'NEXT_PUBLIC_API_URL') {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  return process.env.NEXT_PUBLIC_WS_URL;
+};
+
 const getPublicOrigin = (envName: 'NEXT_PUBLIC_API_URL' | 'NEXT_PUBLIC_WS_URL'): string => {
-  const value = process.env[envName];
+  const value = resolvePublicEnv(envName);
 
   if (value && value.trim().length > 0) {
     return normalizeOrigin(value);
