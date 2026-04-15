@@ -26,7 +26,7 @@ const getPublicOrigin = (envName: 'NEXT_PUBLIC_API_URL' | 'NEXT_PUBLIC_WS_URL'):
   }
 
   if (process.env.NODE_ENV === 'production') {
-    throw new Error(`[Config] Missing required public env: ${envName}`);
+    throw new Error('[Config] Required environment configuration is missing.');
   }
 
   return DEFAULT_LOCAL_ORIGIN;
@@ -50,7 +50,7 @@ const assertSecureProtocolInProduction = (
 
   if (parsed.protocol !== allowedProtocol) {
     const expected = isApiEnv ? 'https' : 'wss';
-    throw new Error(`[Config] ${envName} must use ${expected}:// in production. Received: ${url}`);
+    throw new Error(`[Config] Invalid protocol in environment configuration. Expected ${expected}://.`);
   }
 
   return url;
