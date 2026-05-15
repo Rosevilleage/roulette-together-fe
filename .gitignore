@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+# local pnpm content store (never commit; use default ~/Library/pnpm/store or set store-dir outside the repo)
+/.pnpm-store
 /.pnp
 .pnp.*
 .yarn/*
